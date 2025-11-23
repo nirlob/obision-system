@@ -9,22 +9,23 @@
         <property name="spacing">12</property>
         <child>
           <object class="GtkLabel">
-            <property name="label" translatable="yes">Memory Usage History</property>
+            <property name="label" translatable="yes">Usage History</property>
             <property name="halign">start</property>
-            <style>
-              <class name="title-2"/>
-            </style>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+            </attributes>
           </object>
         </child>
         <child>
           <object class="GtkFrame">
+            <property name="hexpand">true</property>
             <style>
               <class name="view"/>
             </style>
             <child>
               <object class="GtkDrawingArea" id="memory_chart">
-                <property name="width-request">600</property>
                 <property name="height-request">200</property>
+                <property name="hexpand">true</property>
               </object>
             </child>
           </object>
@@ -41,11 +42,11 @@
             <property name="spacing">12</property>
             <child>
               <object class="GtkLabel">
-                <property name="label" translatable="yes">Memory Information</property>
+                <property name="label" translatable="yes">Information</property>
                 <property name="halign">start</property>
-                <style>
-                  <class name="title-3"/>
-                </style>
+                <attributes>
+                  <attribute name="weight" value="bold"/>
+                </attributes>
               </object>
             </child>
             <child>

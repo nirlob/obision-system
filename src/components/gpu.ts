@@ -364,8 +364,8 @@ export class GpuComponent {
     const chartWidth = width - 2 * padding;
     const chartHeight = height - 2 * padding;
     
-    // Clear background
-    cr.setSourceRGB(1, 1, 1);
+    // Clear background with transparent color
+    cr.setSourceRGBA(0, 0, 0, 0);
     cr.paint();
     
     // Draw grid lines

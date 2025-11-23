@@ -11,26 +11,25 @@
       <object class="GtkBox">
         <property name="orientation">vertical</property>
         <property name="spacing">12</property>
-        <property name="margin-start">24</property>
-        <property name="margin-end">24</property>
-        <property name="margin-top">24</property>
-        <property name="margin-bottom">12</property>
         <child>
           <object class="GtkLabel">
-            <property name="label">CPU Usage History</property>
+            <property name="label">Usage History</property>
             <property name="halign">start</property>
             <property name="hexpand">true</property>
-            <style>
-              <class name="title-2"/>
-            </style>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+            </attributes>
           </object>
         </child>
         <child>
           <object class="GtkFrame">
             <property name="vexpand">false</property>
+            <property name="hexpand">true</property>
+            <style>
+              <class name="view"/>
+            </style>
             <child>
               <object class="GtkDrawingArea" id="cpu_chart">
-                <property name="width-request">600</property>
                 <property name="height-request">200</property>
                 <property name="hexpand">true</property>
               </object>
@@ -49,20 +48,16 @@
           <object class="GtkBox">
             <property name="orientation">vertical</property>
             <property name="spacing">12</property>
-            <property name="margin-start">24</property>
-            <property name="margin-end">24</property>
-            <property name="margin-top">12</property>
-            <property name="margin-bottom">24</property>
             
             <!-- CPU Info Title -->
             <child>
               <object class="GtkLabel">
-                <property name="label">CPU Information</property>
+                <property name="label">Information</property>
                 <property name="halign">start</property>
                 <property name="hexpand">true</property>
-                <style>
-                  <class name="title-3"/>
-                </style>
+                <attributes>
+                  <attribute name="weight" value="bold"/>
+                </attributes>
               </object>
             </child>
             

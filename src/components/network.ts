@@ -337,8 +337,8 @@ export class NetworkComponent {
     const chartWidth = width - 2 * padding;
     const chartHeight = height - 2 * padding;
     
-    // Clear background
-    cr.setSourceRGB(1, 1, 1);
+    // Clear background with transparent color
+    cr.setSourceRGBA(0, 0, 0, 0);
     cr.paint();
     
     // Draw grid lines
@@ -416,12 +416,30 @@ export class NetworkComponent {
     
     // Legend
     cr.setFontSize(10);
+    cr.selectFontFace('Sans', 0, 0); // Normal font
+    
+    // Download legend
     cr.setSourceRGB(0.2, 0.4, 0.8);
-    cr.moveTo(width - 150, 15);
+    cr.rectangle(width - 180, 7, 15, 10);
+    cr.fill();
+    cr.setSourceRGB(0.5, 0.5, 0.5);
+    cr.setLineWidth(1);
+    cr.rectangle(width - 180, 7, 15, 10);
+    cr.stroke();
+    cr.setSourceRGB(1, 1, 1);
+    cr.moveTo(width - 160, 15);
     cr.showText('Download');
     
+    // Upload legend
     cr.setSourceRGB(0.2, 0.7, 0.3);
-    cr.moveTo(width - 70, 15);
+    cr.rectangle(width - 85, 7, 15, 10);
+    cr.fill();
+    cr.setSourceRGB(0.5, 0.5, 0.5);
+    cr.setLineWidth(1);
+    cr.rectangle(width - 85, 7, 15, 10);
+    cr.stroke();
+    cr.setSourceRGB(1, 1, 1);
+    cr.moveTo(width - 65, 15);
     cr.showText('Upload');
   }
 

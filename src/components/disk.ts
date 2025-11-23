@@ -80,92 +80,126 @@ export class DiskComponent {
     }
 
     private drawLineChart(cr: any, width: number, height: number): void {
-        // Clear background
+        const padding = 20;
+        const chartWidth = width - 2 * padding;
+        const chartHeight = height - 2 * padding;
+        
+        // Clear background with transparent color
         cr.setSourceRGBA(0, 0, 0, 0);
         cr.paint();
-
-        const padding = 40;
-        const chartWidth = width - padding * 2;
-        const chartHeight = height - padding * 2;
-
+        
         // Find max value for scaling
         const allValues = [...this.readHistory, ...this.writeHistory];
         const maxValue = Math.max(...allValues, 10); // Minimum 10 MB/s for scale
-
+        
         // Draw grid lines
-        cr.setSourceRGBA(0.3, 0.3, 0.3, 0.2);
+        cr.setSourceRGBA(0.8, 0.8, 0.8, 0.5);
         cr.setLineWidth(1);
+        
+        // Horizontal grid lines
         for (let i = 0; i <= 4; i++) {
-            const y = padding + (chartHeight / 4) * i;
+            const y = padding + (chartHeight * i / 4);
             cr.moveTo(padding, y);
             cr.lineTo(width - padding, y);
             cr.stroke();
         }
-
-        // Draw Y-axis labels
-        cr.setSourceRGBA(0.7, 0.7, 0.7, 1);
-        for (let i = 0; i <= 4; i++) {
-            const value = maxValue * (1 - i / 4);
-            const y = padding + (chartHeight / 4) * i;
-            cr.moveTo(5, y + 5);
-            cr.showText(`${value.toFixed(1)} MB/s`);
-        }
-
+        
+        // Draw axes
+        cr.setSourceRGB(0.5, 0.5, 0.5);
+        cr.setLineWidth(2);
+        cr.moveTo(padding, padding);
+        cr.lineTo(padding, height - padding);
+        cr.lineTo(width - padding, height - padding);
+        cr.stroke();
+        
+        const pointSpacing = chartWidth / (this.readHistory.length - 1);
+        
         // Draw read line (blue)
         if (this.readHistory.length > 1) {
-            cr.setSourceRGBA(0.2, 0.4, 0.8, 0.8);
+            cr.setSourceRGB(0.2, 0.6, 1.0);
             cr.setLineWidth(2);
-            cr.moveTo(padding, padding + chartHeight - (this.readHistory[0] / maxValue) * chartHeight);
+            
+            cr.moveTo(padding, height - padding - (this.readHistory[0] / maxValue) * chartHeight);
             
             for (let i = 1; i < this.readHistory.length; i++) {
-                const x = padding + (i / (this.readHistory.length - 1)) * chartWidth;
-                const y = padding + chartHeight - (this.readHistory[i] / maxValue) * chartHeight;
+                const x = padding + i * pointSpacing;
+                const y = height - padding - (this.readHistory[i] / maxValue) * chartHeight;
                 cr.lineTo(x, y);
             }
+            
             cr.stroke();
-
+            
             // Fill area under read line
-            cr.setSourceRGBA(0.2, 0.4, 0.8, 0.1);
-            cr.lineTo(width - padding, padding + chartHeight);
-            cr.lineTo(padding, padding + chartHeight);
+            cr.setSourceRGBA(0.2, 0.6, 1.0, 0.2);
+            cr.lineTo(width - padding, height - padding);
+            cr.lineTo(padding, height - padding);
             cr.closePath();
             cr.fill();
         }
-
+        
         // Draw write line (green)
         if (this.writeHistory.length > 1) {
-            cr.setSourceRGBA(0.2, 0.7, 0.3, 0.8);
+            cr.setSourceRGB(0.2, 0.8, 0.4);
             cr.setLineWidth(2);
-            cr.moveTo(padding, padding + chartHeight - (this.writeHistory[0] / maxValue) * chartHeight);
+            
+            cr.moveTo(padding, height - padding - (this.writeHistory[0] / maxValue) * chartHeight);
             
             for (let i = 1; i < this.writeHistory.length; i++) {
-                const x = padding + (i / (this.writeHistory.length - 1)) * chartWidth;
-                const y = padding + chartHeight - (this.writeHistory[i] / maxValue) * chartHeight;
+                const x = padding + i * pointSpacing;
+                const y = height - padding - (this.writeHistory[i] / maxValue) * chartHeight;
                 cr.lineTo(x, y);
             }
+            
             cr.stroke();
-
+            
             // Fill area under write line
-            cr.setSourceRGBA(0.2, 0.7, 0.3, 0.1);
-            cr.lineTo(width - padding, padding + chartHeight);
-            cr.lineTo(padding, padding + chartHeight);
+            cr.setSourceRGBA(0.2, 0.8, 0.4, 0.2);
+            cr.lineTo(width - padding, height - padding);
+            cr.lineTo(padding, height - padding);
             cr.closePath();
             cr.fill();
         }
-
-        // Draw legend
-        cr.setSourceRGBA(0.2, 0.4, 0.8, 1);
-        cr.rectangle(width - 150, 10, 20, 10);
+        
+        // Draw labels
+        cr.setSourceRGB(0.3, 0.3, 0.3);
+        cr.selectFontFace('Sans', 0, 0);
+        cr.setFontSize(10);
+        
+        // Y-axis labels
+        for (let i = 0; i <= 4; i++) {
+            const y = padding + (chartHeight * i / 4);
+            const value = maxValue * (1 - i / 4);
+            const label = `${value.toFixed(1)}`;
+            cr.moveTo(5, y + 3);
+            cr.showText(label);
+        }
+        
+        // Legend
+        cr.setFontSize(10);
+        cr.selectFontFace('Sans', 0, 0); // Normal font
+        
+        // Read legend
+        cr.setSourceRGB(0.2, 0.6, 1.0);
+        cr.rectangle(width - 170, 7, 15, 10);
         cr.fill();
-        cr.setSourceRGBA(0.7, 0.7, 0.7, 1);
-        cr.moveTo(width - 125, 20);
+        cr.setSourceRGB(0.5, 0.5, 0.5);
+        cr.setLineWidth(1);
+        cr.rectangle(width - 170, 7, 15, 10);
+        cr.stroke();
+        cr.setSourceRGB(1, 1, 1);
+        cr.moveTo(width - 150, 15);
         cr.showText('Read');
-
-        cr.setSourceRGBA(0.2, 0.7, 0.3, 1);
-        cr.rectangle(width - 150, 30, 20, 10);
+        
+        // Write legend
+        cr.setSourceRGB(0.2, 0.8, 0.4);
+        cr.rectangle(width - 90, 7, 15, 10);
         cr.fill();
-        cr.setSourceRGBA(0.7, 0.7, 0.7, 1);
-        cr.moveTo(width - 125, 40);
+        cr.setSourceRGB(0.5, 0.5, 0.5);
+        cr.setLineWidth(1);
+        cr.rectangle(width - 90, 7, 15, 10);
+        cr.stroke();
+        cr.setSourceRGB(1, 1, 1);
+        cr.moveTo(width - 70, 15);
         cr.showText('Write');
     }
 

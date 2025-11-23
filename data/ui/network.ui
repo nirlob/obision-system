@@ -9,22 +9,23 @@
         <property name="spacing">12</property>
         <child>
           <object class="GtkLabel">
-            <property name="label" translatable="yes">Network Usage History</property>
+            <property name="label" translatable="yes">Usage History</property>
             <property name="halign">start</property>
-            <style>
-              <class name="title-2"/>
-            </style>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+            </attributes>
           </object>
         </child>
         <child>
           <object class="GtkFrame">
+            <property name="hexpand">true</property>
             <style>
               <class name="view"/>
             </style>
             <child>
               <object class="GtkDrawingArea" id="network_chart">
-                <property name="width-request">600</property>
                 <property name="height-request">200</property>
+                <property name="hexpand">true</property>
               </object>
             </child>
           </object>
@@ -41,11 +42,11 @@
             <property name="spacing">12</property>
             <child>
               <object class="GtkLabel">
-                <property name="label" translatable="yes">Network Interfaces</property>
+                <property name="label" translatable="yes">Interfaces</property>
                 <property name="halign">start</property>
-                <style>
-                  <class name="title-3"/>
-                </style>
+                <attributes>
+                  <attribute name="weight" value="bold"/>
+                </attributes>
               </object>
             </child>
             <child>
@@ -54,12 +55,12 @@
             </child>
             <child>
               <object class="GtkLabel">
-                <property name="label" translatable="yes">Total Network Statistics</property>
+                <property name="label" translatable="yes">Total Statistics</property>
                 <property name="halign">start</property>
                 <property name="margin-top">12</property>
-                <style>
-                  <class name="title-3"/>
-                </style>
+                <attributes>
+                  <attribute name="weight" value="bold"/>
+                </attributes>
               </object>
             </child>
             <child>
