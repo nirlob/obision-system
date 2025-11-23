@@ -6,6 +6,7 @@ import { ResumeComponent } from './components/resume';
 import { SystemInfoComponent } from './components/system-info';
 import { ResourcesComponent } from './components/resources';
 import { ProcessesComponent } from './components/processes';
+import { ServicesComponent } from './components/services';
 
 class ObisionStatusApplication {
   private application: Adw.Application;
@@ -102,25 +103,39 @@ class ObisionStatusApplication {
     console.log('Setting up UI with loaded content');
 
     // Get UI elements
-    const navigationList = builder.get_object('navigation_list') as Gtk.ListBox;
     const mainContent = builder.get_object('main_content') as Gtk.Box;
+    
+    // Get navigation buttons
+    const menuButton0 = builder.get_object('menu_option_0') as Gtk.Button;
+    const menuButton1 = builder.get_object('menu_option_1') as Gtk.Button;
+    const menuButton2 = builder.get_object('menu_option_2') as Gtk.Button;
+    const menuButton3 = builder.get_object('menu_option_3') as Gtk.Button;
+    const menuButton4 = builder.get_object('menu_option_4') as Gtk.Button;
 
     // Setup navigation
-    navigationList.connect('row-activated', (_listbox: Gtk.ListBox, row: Gtk.ListBoxRow) => {
-      this.onNavigationItemSelected(row, mainContent);
+    menuButton0.connect('clicked', () => {
+      this.onNavigationItemSelected(0, mainContent);
+    });
+    menuButton1.connect('clicked', () => {
+      this.onNavigationItemSelected(1, mainContent);
+    });
+    menuButton2.connect('clicked', () => {
+      this.onNavigationItemSelected(2, mainContent);
+    });
+    menuButton3.connect('clicked', () => {
+      this.onNavigationItemSelected(3, mainContent);
+    });
+    menuButton4.connect('clicked', () => {
+      this.onNavigationItemSelected(4, mainContent);
     });
 
-    // Select first item by default
-    const firstRow = navigationList.get_row_at_index(0);
-    if (firstRow) {
-      navigationList.select_row(firstRow);
-      this.onNavigationItemSelected(firstRow, mainContent);
-    }
+    // Show first view by default
+    this.onNavigationItemSelected(0, mainContent);
 
     return window;
   }
 
-  private onNavigationItemSelected(row: Gtk.ListBoxRow, contentBox: Gtk.Box): void {
+  private onNavigationItemSelected(index: number, contentBox: Gtk.Box): void {
     // Clear current content
     let child = contentBox.get_first_child();
     while (child) {
@@ -128,9 +143,6 @@ class ObisionStatusApplication {
       contentBox.remove(child);
       child = next;
     }
-
-    // Get row index
-    const index = row.get_index();
 
     // Add content based on selection
     switch (index) {
@@ -145,6 +157,9 @@ class ObisionStatusApplication {
         break;
       case 3: // Processes
         this.showProcesses(contentBox);
+        break;
+      case 4: // Services
+        this.showServices(contentBox);
         break;
     }
   }
@@ -166,6 +181,11 @@ class ObisionStatusApplication {
 
   private showProcesses(contentBox: Gtk.Box): void {
     const component = new ProcessesComponent();
+    contentBox.append(component.getWidget());
+  }
+
+  private showServices(contentBox: Gtk.Box): void {
+    const component = new ServicesComponent();
     contentBox.append(component.getWidget());
   }
 

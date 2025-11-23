@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
+  <!-- System Information Component -->
+  <!-- Note: system-info.ts creates UI dynamically and doesn't load this file.
+       This UI definition matches the structure created in code for reference. -->
   <object class="GtkBox" id="system_info_container">
     <property name="orientation">vertical</property>
     <property name="spacing">12</property>
@@ -13,32 +16,15 @@
       </object>
     </child>
     <child>
-      <object class="GtkLabel" id="system_info_description">
-        <property name="label" translatable="yes">System details will be displayed here</property>
-        <property name="halign">start</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkBox">
-        <property name="orientation">vertical</property>
-        <property name="spacing">6</property>
-        <property name="margin-top">12</property>
+      <object class="GtkScrolledWindow" id="system_info_scrolled">
+        <property name="vexpand">true</property>
+        <property name="hexpand">true</property>
         <child>
-          <object class="GtkLabel">
-            <property name="label">OS: Linux</property>
-            <property name="halign">start</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel">
-            <property name="label">Kernel: 6.x.x</property>
-            <property name="halign">start</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel">
-            <property name="label">Desktop: GNOME</property>
-            <property name="halign">start</property>
+          <object class="GtkListBox" id="system_info_list">
+            <property name="selection-mode">none</property>
+            <style>
+              <class name="boxed-list"/>
+            </style>
           </object>
         </child>
       </object>

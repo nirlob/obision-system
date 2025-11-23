@@ -1,0 +1,8 @@
+/* Navigation separator */
+separator.navigation-separator {
+  min-height: 1px;
+  min-width: 1px;
+  padding: 0;
+  margin: 6px 12px;
+  background-color: alpha(currentColor, 0.15);
+}

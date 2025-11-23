@@ -47,117 +47,164 @@
                 <property name="content">
                   <object class="GtkBox" id="sidebar_content">
                     <property name="orientation">vertical</property>
-                    <property name="spacing">0</property>
+                    <property name="spacing">4</property>
+                    <property name="margin-start">6</property>
+                    <property name="margin-end">6</property>
+                    <property name="margin-top">6</property>
+                    <property name="margin-bottom">6</property>
                     <child>
-                      <object class="GtkListBox" id="navigation_list">
-                        <property name="selection-mode">single</property>
+                      <object class="GtkButton" id="menu_option_0">
+                        <property name="halign">fill</property>
                         <style>
-                          <class name="navigation-sidebar"/>
+                          <class name="flat"/>
                         </style>
                         <child>
-                          <object class="GtkListBoxRow" id="menu_option_0">
-                            <property name="activatable">true</property>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">8</property>
+                            <property name="margin-bottom">8</property>
                             <child>
-                              <object class="GtkBox">
-                                <property name="orientation">horizontal</property>
-                                <property name="spacing">12</property>
-                                <property name="margin-start">12</property>
-                                <property name="margin-end">12</property>
-                                <property name="margin-top">8</property>
-                                <property name="margin-bottom">8</property>
-                                <child>
-                                  <object class="GtkImage">
-                                    <property name="icon-name">view-grid-symbolic</property>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkLabel">
-                                    <property name="label" translatable="yes">Resume</property>
-                                    <property name="halign">start</property>
-                                    <property name="hexpand">true</property>
-                                  </object>
-                                </child>
+                              <object class="GtkImage">
+                                <property name="icon-name">view-grid-symbolic</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Resume</property>
+                                <property name="halign">start</property>
+                                <property name="hexpand">true</property>
                               </object>
                             </child>
                           </object>
                         </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="menu_option_1">
+                        <property name="halign">fill</property>
+                        <style>
+                          <class name="flat"/>
+                        </style>
                         <child>
-                          <object class="GtkListBoxRow" id="menu_option_1">
-                            <property name="activatable">true</property>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">8</property>
+                            <property name="margin-bottom">8</property>
                             <child>
-                              <object class="GtkBox">
-                                <property name="orientation">horizontal</property>
-                                <property name="spacing">12</property>
-                                <property name="margin-start">12</property>
-                                <property name="margin-end">12</property>
-                                <property name="margin-top">8</property>
-                                <property name="margin-bottom">8</property>
-                                <child>
-                                  <object class="GtkImage">
-                                    <property name="icon-name">system-run-symbolic</property>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkLabel">
-                                    <property name="label" translatable="yes">System Info</property>
-                                    <property name="halign">start</property>
-                                    <property name="hexpand">true</property>
-                                  </object>
-                                </child>
+                              <object class="GtkImage">
+                                <property name="icon-name">system-run-symbolic</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">System Info</property>
+                                <property name="halign">start</property>
+                                <property name="hexpand">true</property>
                               </object>
                             </child>
                           </object>
                         </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparator">
+                        <property name="orientation">horizontal</property>
+                        <property name="margin-start">6</property>
+                        <property name="margin-end">6</property>
+                        <property name="margin-top">2</property>
+                        <property name="margin-bottom">2</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="menu_option_2">
+                        <property name="halign">fill</property>
+                        <style>
+                          <class name="flat"/>
+                        </style>
                         <child>
-                          <object class="GtkListBoxRow" id="menu_option_2">
-                            <property name="activatable">true</property>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">8</property>
+                            <property name="margin-bottom">8</property>
                             <child>
-                              <object class="GtkBox">
-                                <property name="orientation">horizontal</property>
-                                <property name="spacing">12</property>
-                                <property name="margin-start">12</property>
-                                <property name="margin-end">12</property>
-                                <property name="margin-top">8</property>
-                                <property name="margin-bottom">8</property>
-                                <child>
-                                  <object class="GtkImage">
-                                    <property name="icon-name">dialog-information-symbolic</property>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkLabel">
-                                    <property name="label" translatable="yes">Resources</property>
-                                    <property name="halign">start</property>
-                                    <property name="hexpand">true</property>
-                                  </object>
-                                </child>
+                              <object class="GtkImage">
+                                <property name="icon-name">dialog-information-symbolic</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Resources</property>
+                                <property name="halign">start</property>
+                                <property name="hexpand">true</property>
                               </object>
                             </child>
                           </object>
                         </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="menu_option_3">
+                        <property name="halign">fill</property>
+                        <style>
+                          <class name="flat"/>
+                        </style>
                         <child>
-                          <object class="GtkListBoxRow" id="menu_option_3">
-                            <property name="activatable">true</property>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">8</property>
+                            <property name="margin-bottom">8</property>
                             <child>
-                              <object class="GtkBox">
-                                <property name="orientation">horizontal</property>
-                                <property name="spacing">12</property>
-                                <property name="margin-start">12</property>
-                                <property name="margin-end">12</property>
-                                <property name="margin-top">8</property>
-                                <property name="margin-bottom">8</property>
-                                <child>
-                                  <object class="GtkImage">
-                                    <property name="icon-name">network-server-symbolic</property>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkLabel">
-                                    <property name="label" translatable="yes">Processes</property>
-                                    <property name="halign">start</property>
-                                    <property name="hexpand">true</property>
-                                  </object>
-                                </child>
+                              <object class="GtkImage">
+                                <property name="icon-name">network-server-symbolic</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Processes</property>
+                                <property name="halign">start</property>
+                                <property name="hexpand">true</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="menu_option_4">
+                        <property name="halign">fill</property>
+                        <style>
+                          <class name="flat"/>
+                        </style>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">8</property>
+                            <property name="margin-bottom">8</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon-name">preferences-system-symbolic</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Services</property>
+                                <property name="halign">start</property>
+                                <property name="hexpand">true</property>
                               </object>
                             </child>
                           </object>

@@ -4,39 +4,31 @@ import { UtilsService } from '../services/utils-service';
 
 export class SystemInfoComponent {
   private container: Gtk.Box;
-  private listBox: Gtk.ListBox;
+  private listBox!: Gtk.ListBox;
   private utils: UtilsService;
 
   constructor() {
     this.utils = UtilsService.instance;
+    const builder = Gtk.Builder.new();
     
-    // Create container
-    this.container = new Gtk.Box({
-      orientation: Gtk.Orientation.VERTICAL,
-      spacing: 12,
-    });
+    // Load UI file with fallback
+    try {
+      try {
+        builder.add_from_file('/usr/share/com.obision.ObisionStatus/ui/system-info.ui');
+      } catch (e) {
+        builder.add_from_file('data/ui/system-info.ui');
+      }
+    } catch (e) {
+      console.error('Could not load system-info.ui:', e);
+      this.container = new Gtk.Box({
+        orientation: Gtk.Orientation.VERTICAL,
+        spacing: 12,
+      });
+      return;
+    }
     
-    // Title
-    const title = new Gtk.Label({
-      label: 'System Information',
-      halign: Gtk.Align.START,
-    });
-    title.add_css_class('title-1');
-    this.container.append(title);
-    
-    // Create list box
-    this.listBox = new Gtk.ListBox({
-      selection_mode: Gtk.SelectionMode.NONE,
-    });
-    this.listBox.add_css_class('boxed-list');
-    
-    // Scrolled window
-    const scrolled = new Gtk.ScrolledWindow({
-      vexpand: true,
-      hexpand: true,
-    });
-    scrolled.set_child(this.listBox);
-    this.container.append(scrolled);
+    this.container = builder.get_object('system_info_container') as Gtk.Box;
+    this.listBox = builder.get_object('system_info_list') as Gtk.ListBox;
     
     // Load system info
     this.loadSystemInfo();
@@ -77,7 +69,7 @@ export class SystemInfoComponent {
           case 'Uptime':
             title = 'Uptime';
             subtitle = this.formatUptime(result.uptime);
-            icon = 'clock-symbolic';
+            icon = 'document-open-recent-symbolic';
             break;
           case 'Packages':
             title = 'Packages';
@@ -92,23 +84,28 @@ export class SystemInfoComponent {
             break;
           case 'Shell':
             title = 'Shell';
-            subtitle = `${result.name} ${result.version}`;
+            subtitle = result.version ? `${result.exeName} ${result.version}` : result.exeName;
             icon = 'utilities-terminal-symbolic';
             break;
           case 'Display':
             title = 'Display';
-            subtitle = `${result.width}x${result.height} @ ${result.refreshRate} Hz`;
+            result.forEach((display: {name: string, output: any}, index: number) => {
+              subtitle += `${display.name} - ${display.output.refreshRate ? `${display.output.width}x${display.output.height}@${display.output.refreshRate} Hz` : `${display.output.width}x${display.output.height}`}`;
+              if (index < result.length - 1) {
+                subtitle += '\n';
+              }
+            });
             icon = 'video-display-symbolic';
-            break;
+          break;
           case 'DE':
             title = 'Desktop Environment';
-            subtitle = `${result.name} ${result.version}`;
-            icon = 'preferences-desktop-symbolic';
+            subtitle = result.version ? `${result.prettyName} ${result.version}` : result.prettyName || result.name;
+            icon = 'computer-symbolic';
             break;
           case 'WM':
             title = 'Window Manager';
-            subtitle = `${result.pretty}`;
-            icon = 'preferences-system-windows-symbolic';
+            subtitle = `${result.prettyName} (${result.protocolName})`;
+            icon = 'computer-apple-ipad-symbolic';
             break;
           case 'Theme':
             title = 'Theme';
@@ -121,56 +118,72 @@ export class SystemInfoComponent {
             icon = 'preferences-desktop-icons-symbolic';
             break;
           case 'Font':
-            title = 'Font';
-            subtitle = `${result.pretty}`;
-            icon = 'font-x-generic-symbolic';
+            if (result.pretty || result.name) {
+              title = 'Font';
+              subtitle = result.pretty || result.name;
+              icon = 'font-x-generic-symbolic';
+            }
             break;
           case 'Cursor':
-            title = 'Cursor';
-            subtitle = `${result.name} (${result.size}px)`;
-            icon = 'input-mouse-symbolic';
-            break;
-          case 'Terminal':
-            title = 'Terminal';
-            subtitle = `${result.exe} ${result.version}`;
-            icon = 'utilities-terminal-symbolic';
+            if (result.name) {
+              title = 'Cursor';
+              subtitle = result.size ? `${result.name} (${result.size}px)` : result.name;
+              icon = 'input-mouse-symbolic';
+            }
             break;
           case 'CPU':
             title = 'CPU';
-            subtitle = result.name;
-            icon = 'cpu-symbolic';
+            subtitle = `${result.cpu} - ${result.cores.physical} physical cores / ${result.cores.logical} logical cores`;
+            icon = 'drive-harddisk-solidstate-symbolic';
             break;
           case 'GPU':
-            title = `GPU ${result.index + 1}`;
-            subtitle = `${result.name} ${result.type ? `[${result.type}]` : ''}`;
+            title = result.index !== undefined ? `GPU ${result.index + 1}` : 'GPU';
+            result.forEach((gpu: {name: string, vendor: string}, index: number) => {
+              subtitle += `${gpu.vendor} ${gpu.name}`;
+              if (index < result.length - 1) {
+                subtitle += '\n';
+              }
+            });
             icon = 'video-display-symbolic';
             break;
           case 'Memory':
             title = 'Memory';
-            subtitle = `${this.formatBytes(result.used)} / ${this.formatBytes(result.total)} (${result.percentage.toFixed(1)}%)`;
-            icon = 'memory-symbolic';
+            const memPct = result.total !== undefined ? `(${(result.used * 100 / result.total).toFixed(1)}%)` : '';
+            subtitle = `${this.formatBytes(result.used || 0)} / ${this.formatBytes(result.total || 0)} ${memPct}`;
+            icon = 'auth-sim-symbolic';
             break;
           case 'Swap':
+            title = 'Swap';
             if (result.total > 0) {
-              title = 'Swap';
-              subtitle = `${this.formatBytes(result.used)} / ${this.formatBytes(result.total)} (${result.percentage.toFixed(1)}%)`;
-              icon = 'drive-harddisk-symbolic';
+              const swapPct = `(${(result.used * 100 / result.total).toFixed(1)}%)`;
+              subtitle = `${this.formatBytes(result.used || 0)} / ${this.formatBytes(result.total || 0)} ${swapPct}`;
+            } else {
+              subtitle = 'No swap space configured';
             }
+            icon = 'drive-harddisk-symbolic';
             break;
           case 'Disk':
-            title = `Disk (${result.mountpoint})`;
-            subtitle = `${this.formatBytes(result.used)} / ${this.formatBytes(result.total)} (${result.percentage.toFixed(1)}%) - ${result.filesystem}`;
+            title = 'Mount points';
+            result.forEach((mount: { mountpoint: any; bytes: any; }, index: number) => {
+              subtitle += `${mount.mountpoint} - ${this.formatBytes(mount.bytes.used || 0)} / ${this.formatBytes(mount.bytes.total || 0)}`;
+              if (index < result.length - 1) {
+                subtitle += '\n';
+              }
+            });
             icon = 'drive-harddisk-symbolic';
             break;
           case 'LocalIP':
-            title = `Local IP (${result.name})`;
-            subtitle = result.ip;
-            icon = 'network-wired-symbolic';
+            if (result.ip) {
+              title = result.name ? `Local IP (${result.name})` : 'Local IP';
+              subtitle = result.ip;
+              icon = 'network-wired-symbolic';
+            }
             break;
           case 'Battery':
-            title = `Battery (${result.modelName})`;
+            title = `Battery${result.modelName ? ' (' + result.modelName + ')' : ''}`;
             const status = result.status ? ` [${result.status}]` : '';
-            subtitle = `${result.percentage.toFixed(1)}%${status}`;
+            const battPct = result.percentage !== undefined ? `${result.percentage.toFixed(1)}%` : 'N/A';
+            subtitle = `${battPct}${status}`;
             icon = result.status === 'AC Connected' ? 'battery-full-charging-symbolic' : 'battery-symbolic';
             break;
           case 'Locale':
@@ -188,8 +201,6 @@ export class SystemInfoComponent {
       }
     } catch (e) {
       console.error('Error loading system info:', e);
-      // Fallback if fastfetch fails
-      this.addInfoRow('Error', 'Could not load system information', 'dialog-error-symbolic');
     }
   }
 

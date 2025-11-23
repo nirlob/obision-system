@@ -228,6 +228,22 @@ if (fs.existsSync(processesComponentFile)) {
     combinedContent += processesContent + '\n';
 }
 
+// Add Services component
+const servicesComponentFile = path.join(BUILD_DIR, 'components', 'services.js');
+if (fs.existsSync(servicesComponentFile)) {
+    console.log('📋 Adding ServicesComponent...');
+    let servicesContent = fs.readFileSync(servicesComponentFile, 'utf8');
+
+    const classStartIndex = servicesContent.indexOf('class ServicesComponent {');
+    if (classStartIndex !== -1) {
+        servicesContent = servicesContent.substring(classStartIndex);
+    }
+
+    servicesContent = cleanJSContent(servicesContent)
+        .replace(/utils_service_1\./g, '');
+    combinedContent += servicesContent + '\n';
+}
+
 // Add ApplicationsList component
 const applicationsListFile = path.join(BUILD_DIR, 'components', 'applications-list.js');
 if (fs.existsSync(applicationsListFile)) {
@@ -269,6 +285,7 @@ if (fs.existsSync(mainJsFile)) {
         .replace(/system_info_1\./g, '')
         .replace(/resources_1\./g, '')
         .replace(/processes_1\./g, '')
+        .replace(/services_1\./g, '')
         .replace(/applications_list_js_1\.ApplicationsList/g, 'ApplicationsList')
         .replace(/applications_list_js_1\./g, '')
         .replace(/install_dialog_js_1\./g, '')
