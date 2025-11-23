@@ -4,58 +4,349 @@
     <property name="orientation">vertical</property>
     <property name="spacing">12</property>
     <child>
-      <object class="GtkLabel">
-        <property name="label" translatable="yes">System Drivers</property>
-        <property name="halign">start</property>
-        <style>
-          <class name="title-2"/>
-        </style>
+      <object class="GtkBox">
+        <property name="orientation">horizontal</property>
+        <property name="spacing">12</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label" translatable="yes">System Drivers</property>
+            <property name="halign">start</property>
+            <property name="hexpand">true</property>
+            <style>
+              <class name="title-2"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="drivers_refresh_button">
+            <property name="icon-name">view-refresh-symbolic</property>
+            <property name="tooltip-text" translatable="yes">Refresh drivers list</property>
+            <property name="valign">center</property>
+          </object>
+        </child>
       </object>
     </child>
     <child>
-      <object class="GtkScrolledWindow">
+      <object class="GtkStack" id="drivers_stack">
         <property name="vexpand">true</property>
-        <property name="hscrollbar-policy">never</property>
         <child>
-          <object class="GtkBox">
-            <property name="orientation">vertical</property>
-            <property name="spacing">12</property>
-            <child>
-              <object class="AdwPreferencesGroup" id="kernel_drivers_group">
-                <property name="title" translatable="yes">Kernel Modules</property>
-                <property name="description" translatable="yes">Loaded kernel drivers and modules</property>
+          <object class="GtkStackPage">
+            <property name="name">loading</property>
+            <property name="child">
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">12</property>
+                <property name="valign">center</property>
+                <property name="vexpand">true</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Loading drivers...</property>
+                    <style>
+                      <class name="title-4"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStackPage">
+            <property name="name">content</property>
+            <property name="child">
+              <object class="GtkScrolledWindow">
+                <property name="vexpand">true</property>
+                <property name="hscrollbar-policy">never</property>
+                <child>
+                  <object class="GtkBox" id="drivers_content_box">
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">12</property>
+                    <child>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">9</property>
+                <property name="margin-bottom">12</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">3</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Kernel Modules</property>
+                        <property name="halign">start</property>
+                        <style>
+                          <class name="title-4"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Loaded kernel drivers and modules</property>
+                        <property name="halign">start</property>
+                        <style>
+                          <class name="dim-label"/>
+                          <class name="caption"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkFrame">
+                    <style>
+                      <class name="view"/>
+                    </style>
+                    <child>
+                      <object class="GtkListBox" id="kernel_drivers_group">
+                        <property name="selection-mode">none</property>
+                        <style>
+                          <class name="boxed-list"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
-              <object class="AdwPreferencesGroup" id="graphics_drivers_group">
-                <property name="title" translatable="yes">Graphics Drivers</property>
-                <property name="description" translatable="yes">GPU and display drivers</property>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">9</property>
+                <property name="margin-bottom">12</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">3</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Graphics Drivers</property>
+                        <property name="halign">start</property>
+                        <style>
+                          <class name="title-4"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">GPU and display drivers</property>
+                        <property name="halign">start</property>
+                        <style>
+                          <class name="dim-label"/>
+                          <class name="caption"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkFrame">
+                    <style>
+                      <class name="view"/>
+                    </style>
+                    <child>
+                      <object class="GtkListBox" id="graphics_drivers_group">
+                        <property name="selection-mode">none</property>
+                        <style>
+                          <class name="boxed-list"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
-              <object class="AdwPreferencesGroup" id="network_drivers_group">
-                <property name="title" translatable="yes">Network Drivers</property>
-                <property name="description" translatable="yes">Network interface drivers</property>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">9</property>
+                <property name="margin-bottom">12</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">3</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Network Drivers</property>
+                        <property name="halign">start</property>
+                        <style>
+                          <class name="title-4"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Network interface drivers</property>
+                        <property name="halign">start</property>
+                        <style>
+                          <class name="dim-label"/>
+                          <class name="caption"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkFrame">
+                    <style>
+                      <class name="view"/>
+                    </style>
+                    <child>
+                      <object class="GtkListBox" id="network_drivers_group">
+                        <property name="selection-mode">none</property>
+                        <style>
+                          <class name="boxed-list"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
-              <object class="AdwPreferencesGroup" id="storage_drivers_group">
-                <property name="title" translatable="yes">Storage Drivers</property>
-                <property name="description" translatable="yes">Disk and storage controllers</property>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">9</property>
+                <property name="margin-bottom">12</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">3</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Storage Drivers</property>
+                        <property name="halign">start</property>
+                        <style>
+                          <class name="title-4"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Disk and storage controllers</property>
+                        <property name="halign">start</property>
+                        <style>
+                          <class name="dim-label"/>
+                          <class name="caption"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkFrame">
+                    <style>
+                      <class name="view"/>
+                    </style>
+                    <child>
+                      <object class="GtkListBox" id="storage_drivers_group">
+                        <property name="selection-mode">none</property>
+                        <style>
+                          <class name="boxed-list"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
-              <object class="AdwPreferencesGroup" id="audio_drivers_group">
-                <property name="title" translatable="yes">Audio Drivers</property>
-                <property name="description" translatable="yes">Sound card and audio devices</property>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">9</property>
+                <property name="margin-bottom">12</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">3</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Audio Drivers</property>
+                        <property name="halign">start</property>
+                        <style>
+                          <class name="title-4"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Sound card and audio devices</property>
+                        <property name="halign">start</property>
+                        <style>
+                          <class name="dim-label"/>
+                          <class name="caption"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkFrame">
+                    <style>
+                      <class name="view"/>
+                    </style>
+                    <child>
+                      <object class="GtkListBox" id="audio_drivers_group">
+                        <property name="selection-mode">none</property>
+                        <style>
+                          <class name="boxed-list"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
-              <object class="AdwPreferencesGroup" id="usb_drivers_group">
-                <property name="title" translatable="yes">USB Drivers</property>
-                <property name="description" translatable="yes">USB controllers and devices</property>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">9</property>
+                <property name="margin-bottom">12</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">3</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">USB Drivers</property>
+                        <property name="halign">start</property>
+                        <style>
+                          <class name="title-4"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">USB controllers and devices</property>
+                        <property name="halign">start</property>
+                        <style>
+                          <class name="dim-label"/>
+                          <class name="caption"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkFrame">
+                    <style>
+                      <class name="view"/>
+                    </style>
+                    <child>
+                      <object class="GtkListBox" id="usb_drivers_group">
+                        <property name="selection-mode">none</property>
+                        <style>
+                          <class name="boxed-list"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
+                  </object>
+                </child>
+              </object>
+            </property>
           </object>
         </child>
       </object>

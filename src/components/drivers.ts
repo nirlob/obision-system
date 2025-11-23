@@ -12,14 +12,15 @@ interface DriverInfo {
 
 export class DriversComponent {
   private container: Gtk.Box;
-  private kernelDriversGroup!: Adw.PreferencesGroup;
-  private graphicsDriversGroup!: Adw.PreferencesGroup;
-  private networkDriversGroup!: Adw.PreferencesGroup;
-  private storageDriversGroup!: Adw.PreferencesGroup;
-  private audioDriversGroup!: Adw.PreferencesGroup;
-  private usbDriversGroup!: Adw.PreferencesGroup;
+  private stack!: Gtk.Stack;
+  private refreshButton!: Gtk.Button;
+  private kernelDriversGroup!: Gtk.ListBox;
+  private graphicsDriversGroup!: Gtk.ListBox;
+  private networkDriversGroup!: Gtk.ListBox;
+  private storageDriversGroup!: Gtk.ListBox;
+  private audioDriversGroup!: Gtk.ListBox;
+  private usbDriversGroup!: Gtk.ListBox;
   private utils: UtilsService;
-  private updateTimeoutId: number | null = null;
 
   constructor() {
     this.utils = UtilsService.instance;
@@ -41,24 +42,49 @@ export class DriversComponent {
     }
 
     this.container = builder.get_object('drivers_container') as Gtk.Box;
-    this.kernelDriversGroup = builder.get_object('kernel_drivers_group') as Adw.PreferencesGroup;
-    this.graphicsDriversGroup = builder.get_object('graphics_drivers_group') as Adw.PreferencesGroup;
-    this.networkDriversGroup = builder.get_object('network_drivers_group') as Adw.PreferencesGroup;
-    this.storageDriversGroup = builder.get_object('storage_drivers_group') as Adw.PreferencesGroup;
-    this.audioDriversGroup = builder.get_object('audio_drivers_group') as Adw.PreferencesGroup;
-    this.usbDriversGroup = builder.get_object('usb_drivers_group') as Adw.PreferencesGroup;
+    this.stack = builder.get_object('drivers_stack') as Gtk.Stack;
+    this.refreshButton = builder.get_object('drivers_refresh_button') as Gtk.Button;
+    this.kernelDriversGroup = builder.get_object('kernel_drivers_group') as Gtk.ListBox;
+    this.graphicsDriversGroup = builder.get_object('graphics_drivers_group') as Gtk.ListBox;
+    this.networkDriversGroup = builder.get_object('network_drivers_group') as Gtk.ListBox;
+    this.storageDriversGroup = builder.get_object('storage_drivers_group') as Gtk.ListBox;
+    this.audioDriversGroup = builder.get_object('audio_drivers_group') as Gtk.ListBox;
+    this.usbDriversGroup = builder.get_object('usb_drivers_group') as Gtk.ListBox;
     
-    // Load drivers
-    this.loadDrivers();
+    // Get refresh button
+    this.refreshButton.connect('clicked', () => {
+      this.loadDrivers(true);
+    });
     
-    // Auto-refresh every 10 seconds
-    this.updateTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 10000, () => {
-      this.loadDrivers();
-      return GLib.SOURCE_CONTINUE;
+    // Load drivers on initial load
+    GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+      this.stack.set_visible_child_name('loading');
+      this.refreshButton.set_sensitive(false);
+      
+      GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
+        this.loadDriversInternal();
+        return GLib.SOURCE_REMOVE;
+      });
+      
+      return GLib.SOURCE_REMOVE;
     });
   }
 
-  private loadDrivers(): void {
+  private loadDrivers(showLoading: boolean = false): void {
+    if (showLoading) {
+      // Show loading and disable refresh button
+      this.stack.set_visible_child_name('loading');
+      this.refreshButton.set_sensitive(false);
+    }
+    
+    // Use GLib.timeout_add to ensure loading is visible before heavy work
+    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
+      this.loadDriversInternal();
+      return GLib.SOURCE_REMOVE;
+    });
+  }
+
+  private loadDriversInternal(): void {
     // Clear existing rows
     this.clearGroup(this.graphicsDriversGroup);
     this.clearGroup(this.networkDriversGroup);
@@ -66,38 +92,52 @@ export class DriversComponent {
     this.clearGroup(this.audioDriversGroup);
     this.clearGroup(this.usbDriversGroup);
     this.clearGroup(this.kernelDriversGroup);
-
-    // Load graphics drivers
-    this.loadGraphicsDrivers();
     
-    // Load network drivers
-    this.loadNetworkDrivers();
+    // Load each category with delays
+    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 200, () => {
+      this.loadGraphicsDrivers();
+      return GLib.SOURCE_REMOVE;
+    });
     
-    // Load storage drivers
-    this.loadStorageDrivers();
+    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
+      this.loadNetworkDrivers();
+      return GLib.SOURCE_REMOVE;
+    });
     
-    // Load audio drivers
-    this.loadAudioDrivers();
+    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 800, () => {
+      this.loadStorageDrivers();
+      return GLib.SOURCE_REMOVE;
+    });
     
-    // Load USB drivers
-    this.loadUSBDrivers();
+    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1100, () => {
+      this.loadAudioDrivers();
+      return GLib.SOURCE_REMOVE;
+    });
     
-    // Load top kernel modules
-    this.loadKernelModules();
+    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1400, () => {
+      this.loadUSBDrivers();
+      return GLib.SOURCE_REMOVE;
+    });
+    
+    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1700, () => {
+      this.loadKernelModules();
+      return GLib.SOURCE_REMOVE;
+    });
+    
+    // Show content after all loads complete - wait longer
+    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 2500, () => {
+      this.stack.set_visible_child_name('content');
+      this.refreshButton.set_sensitive(true);
+      return GLib.SOURCE_REMOVE;
+    });
   }
 
-  private clearGroup(group: Adw.PreferencesGroup): void {
-    let child = group.get_first_child();
-    while (child) {
-      const next = child.get_next_sibling();
-      if (child instanceof Adw.ActionRow) {
-        group.remove(child);
-      }
-      child = next;
-    }
+  private clearGroup(listBox: Gtk.ListBox): void {
+    // Remove all rows from the list box
+    listBox.remove_all();
   }
 
-  private addDriverRow(group: Adw.PreferencesGroup, driver: DriverInfo): void {
+  private addDriverRow(listBox: Gtk.ListBox, driver: DriverInfo): void {
     const row = new Adw.ActionRow({
       title: driver.name,
       subtitle: driver.description,
@@ -123,7 +163,7 @@ export class DriversComponent {
       row.add_suffix(usedLabel);
     }
     
-    group.add(row);
+    listBox.append(row);
   }
 
   private loadGraphicsDrivers(): void {
@@ -365,21 +405,42 @@ export class DriversComponent {
         const module = modules[i];
         
         let version = '';
+        let description = '';
+        let author = '';
+        let license = '';
+        let filename = '';
+        
         try {
-          const [modInfoOut] = this.utils.executeCommand('modinfo', [module.name]);
-          const versionLine = modInfoOut.split('\n').find(l => l.includes('version:'));
-          if (versionLine) {
-            version = versionLine.split(':')[1].trim();
+          const [modInfoOut] = this.utils.executeCommand('/usr/sbin/modinfo', [module.name]);
+          const infoLines = modInfoOut.split('\n');
+          
+          for (const line of infoLines) {
+            if (line.startsWith('version:')) {
+              version = line.substring('version:'.length).trim();
+            } else if (line.startsWith('description:')) {
+              description = line.substring('description:'.length).trim();
+            } else if (line.startsWith('author:')) {
+              author = line.substring('author:'.length).trim();
+            } else if (line.startsWith('license:')) {
+              license = line.substring('license:'.length).trim();
+            } else if (line.startsWith('filename:')) {
+              filename = line.substring('filename:'.length).trim();
+            }
           }
         } catch (e) {
           // Ignore
         }
         
-        this.addDriverRow(this.kernelDriversGroup, {
+        this.addKernelModuleRow(this.kernelDriversGroup, {
           name: module.name,
-          description: `Size: ${module.size} bytes` + (module.by ? ` | Used by: ${module.by}` : ''),
-          version: version || undefined,
+          size: module.size,
           used: module.used,
+          usedBy: module.by,
+          version: version,
+          description: description,
+          author: author,
+          license: license,
+          filename: filename,
         });
       }
     } catch (error) {
@@ -387,14 +448,92 @@ export class DriversComponent {
     }
   }
 
-  public getWidget(): Gtk.Box {
-    return this.container;
+  private addKernelModuleRow(listBox: Gtk.ListBox, module: {
+    name: string;
+    size: string;
+    used: string;
+    usedBy: string;
+    version?: string;
+    description?: string;
+    author?: string;
+    license?: string;
+    filename?: string;
+  }): void {
+    const expanderRow = new Adw.ExpanderRow({
+      title: module.name,
+      subtitle: '',
+    });
+    // Asignar el subtítulo solo con texto plano
+    expanderRow.set_subtitle(module.description || 'Kernel module');
+    // Add version suffix if available
+    if (module.version) {
+      const versionLabel = new Gtk.Label({
+        label: module.version,
+        css_classes: ['dim-label', 'caption'],
+        halign: Gtk.Align.END,
+        valign: Gtk.Align.CENTER,
+      });
+      expanderRow.add_suffix(versionLabel);
+    }
+
+    // Add detailed information rows
+    const usedRow = new Adw.ActionRow({
+      title: 'Used',
+      subtitle: '',
+    });
+    usedRow.set_subtitle(module.used);
+    expanderRow.add_row(usedRow);
+
+    if (module.usedBy) {
+      const usedByRow = new Adw.ActionRow({
+        title: 'Used by',
+        subtitle: '',
+      });
+      usedByRow.set_subtitle(module.usedBy);
+      expanderRow.add_row(usedByRow);
+    }
+
+    const sizeBytes = parseInt(module.size);
+    const formattedSize = this.utils.formatBytes(sizeBytes);
+    const sizeRow = new Adw.ActionRow({
+      title: 'Size',
+      subtitle: '',
+    });
+    sizeRow.set_subtitle(formattedSize);
+    expanderRow.add_row(sizeRow);
+
+    if (module.author) {
+      // Mostrar el autor tal cual, permitiendo arroba y evitando markup
+      const authorRow = new Adw.ActionRow({
+        title: 'Author',
+        subtitle: '',
+      });
+      authorRow.set_subtitle(module.author);
+      expanderRow.add_row(authorRow);
+    }
+
+    if (module.license) {
+      const licenseRow = new Adw.ActionRow({
+        title: 'License',
+        subtitle: '',
+      });
+      licenseRow.set_subtitle(module.license);
+      expanderRow.add_row(licenseRow);
+    }
+
+    if (module.filename) {
+      const filenameRow = new Adw.ActionRow({
+        title: 'Filename',
+        subtitle: '',
+      });
+      filenameRow.set_subtitle(module.filename);
+      expanderRow.add_row(filenameRow);
+    }
+
+    listBox.append(expanderRow);
   }
 
-  public destroy(): void {
-    if (this.updateTimeoutId !== null) {
-      GLib.source_remove(this.updateTimeoutId);
-      this.updateTimeoutId = null;
-    }
+  public getWidget(): Gtk.Box {
+    return this.container;
   }
 }
