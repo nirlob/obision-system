@@ -1,10 +1,6 @@
 import GLib from "@girs/glib-2.0";
 import { UtilsService } from "./utils-service";
-
-export interface LogsData {
-    systemLogs: string;
-    userLogs: string;
-}
+import { LogsData } from "../interfaces/logs";
 
 export class LogsService {
     private static _instance: LogsService;

@@ -1,6 +1,7 @@
 import Gtk from '@girs/gtk-4.0';
 import Adw from '@girs/adw-1';
-import { ResumeService, SystemData } from '../services/resume-service';
+import { ResumeService } from '../services/resume-service';
+import { SystemData } from '../interfaces/resume';
 import { UtilsService } from '../services/utils-service';
 
 export class ResumeComponent {

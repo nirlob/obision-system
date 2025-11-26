@@ -4,7 +4,8 @@ import Gio from '@girs/gio-2.0';
 import GLib from '@girs/glib-2.0';
 import Pango from '@girs/pango-1.0';
 import { UtilsService } from '../services/utils-service';
-import { ProcessesService, ProcessesData, ProcessInfo } from '../services/processes-service';
+import { ProcessesService } from '../services/processes-service';
+import { ProcessesData, ProcessInfo } from '../interfaces/processes';
 
 export class ProcessesComponent {
   private container: Gtk.Box;

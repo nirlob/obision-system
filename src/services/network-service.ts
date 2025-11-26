@@ -1,22 +1,6 @@
 import GLib from "@girs/glib-2.0";
 import { UtilsService } from "./utils-service";
-
-export interface NetworkInterface {
-    name: string;
-    type: string;
-    state: string;
-    ipv4: string;
-    ipv6: string;
-    mac: string;
-    rxBytes: number;
-    txBytes: number;
-    rxSpeed: string;
-    txSpeed: string;
-}
-
-export interface NetworkData {
-    interfaces: NetworkInterface[];
-}
+import { NetworkInterface, NetworkData } from "../interfaces/network";
 
 export class NetworkService {
     private static _instance: NetworkService;

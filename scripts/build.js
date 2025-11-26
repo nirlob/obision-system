@@ -84,20 +84,14 @@ const { Pango } = imports.gi;
 // Read and process the components
 let combinedContent = gjsHeader;
 
-// First, add the interfaces from interfaces file if it exists
-const applicationInterfaceFile = path.join(BUILD_DIR, 'interfaces', 'application.js');
-if (fs.existsSync(applicationInterfaceFile)) {
-    let applicationInterfaceContent = fs.readFileSync(applicationInterfaceFile, 'utf8');
-    // Extract interface definitions (they will be removed by transpilation)
-    console.log('📋 Adding interfaces...');
-}
-
-// First, add the interfaces from interfaces file if it exists
-const categoryInterfaceFile = path.join(BUILD_DIR, 'interfaces', 'category.js');
-if (fs.existsSync(categoryInterfaceFile)) {
-    let categoryInterfaceContent = fs.readFileSync(categoryInterfaceFile, 'utf8');
-    // Extract interface definitions (they will be removed by transpilation)
-    console.log('📋 Adding interfaces...');
+// Add interfaces (TypeScript interfaces are removed during transpilation, but we process them for consistency)
+const interfaceFiles = ['application', 'category', 'resume', 'network', 'processes', 'logs'];
+for (const interfaceName of interfaceFiles) {
+    const interfaceFile = path.join(BUILD_DIR, 'interfaces', `${interfaceName}.js`);
+    if (fs.existsSync(interfaceFile)) {
+        console.log(`📋 Processing ${interfaceName} interface...`);
+        // Interfaces are stripped during transpilation, so we just check they exist
+    }
 }
 
 // Add SettingsService service

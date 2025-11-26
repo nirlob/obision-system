@@ -1,7 +1,8 @@
 import Gtk from '@girs/gtk-4.0';
 import Adw from '@girs/adw-1';
 import { UtilsService } from '../services/utils-service';
-import { NetworkService, NetworkData } from '../services/network-service';
+import { NetworkService } from '../services/network-service';
+import { NetworkData, NetworkInterface } from '../interfaces/network';
 
 export class NetworkComponent {
   private container: Gtk.Box;

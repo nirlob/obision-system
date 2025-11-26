@@ -1,6 +1,7 @@
 import Gtk from "@girs/gtk-4.0";
 import { UtilsService } from "../services/utils-service";
-import { LogsService, LogsData } from "../services/logs-service";
+import { LogsService } from "../services/logs-service";
+import { LogsData } from "../interfaces/logs";
 
 export class LogsComponent {
     private container: Gtk.Box;

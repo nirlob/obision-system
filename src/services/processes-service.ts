@@ -1,24 +1,6 @@
 import GLib from "@girs/glib-2.0";
 import { UtilsService } from "./utils-service";
-
-export interface ProcessInfo {
-    pid: string;
-    user: string;
-    cpu: string;
-    memory: string;
-    vsz: string;
-    rss: string;
-    tty: string;
-    stat: string;
-    start: string;
-    time: string;
-    command: string;
-}
-
-export interface ProcessesData {
-    processes: ProcessInfo[];
-    totalCount: number;
-}
+import { ProcessInfo, ProcessesData } from "../interfaces/processes";
 
 export class ProcessesService {
     private static _instance: ProcessesService;
