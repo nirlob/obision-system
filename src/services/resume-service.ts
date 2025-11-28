@@ -227,11 +227,30 @@ export class ResumeService {
 
     private updateCpuTemperature(): number {
         try {
-            const [stdout] = this.utils.executeCommand('cat', ['/sys/class/thermal/thermal_zone0/temp']);
-            const temp = parseInt(stdout.trim()) / 1000;
-            return Math.round(temp);
+            // Try thermal_zone0 first
+            try {
+                const [stdout] = this.utils.executeCommand('cat', ['/sys/class/thermal/thermal_zone0/temp']);
+                const temp = parseInt(stdout.trim()) / 1000;
+                if (!isNaN(temp)) {
+                    return Math.round(temp);
+                }
+            } catch (e) {
+                // Try other thermal zones
+                for (let i = 1; i <= 5; i++) {
+                    try {
+                        const [stdout] = this.utils.executeCommand('cat', [`/sys/class/thermal/thermal_zone${i}/temp`]);
+                        const temp = parseInt(stdout.trim()) / 1000;
+                        if (!isNaN(temp)) {
+                            return Math.round(temp);
+                        }
+                    } catch (e) {
+                        continue;
+                    }
+                }
+            }
+            return -1; // Not available
         } catch (error) {
-            return 0;
+            return -1;
         }
     }
 
@@ -241,9 +260,10 @@ export class ResumeService {
                 '--query-gpu=temperature.gpu',
                 '--format=csv,noheader,nounits'
             ]);
-            return parseInt(stdout.trim()) || 0;
+            const temp = parseInt(stdout.trim());
+            return (!isNaN(temp) && temp > 0) ? temp : -1;
         } catch (error) {
-            return 0;
+            return -1;
         }
     }
 

@@ -133,8 +133,8 @@ export class ResumeComponent {
     this.memoryLabel.set_label(`${data.memory.percentage}%`);
     this.diskLabel.set_label(`${data.disk.percentage}%`);
     this.networkLabel.set_label(`↓ ${data.network.download}\n↑ ${data.network.upload}`);
-    this.cpuTempLabel.set_label(`${data.cpuTemp}°C`);
-    this.gpuTempLabel.set_label(`${data.gpuTemp}°C`);
+    this.cpuTempLabel.set_label(data.cpuTemp >= 0 ? `${data.cpuTemp}°C` : 'N/A');
+    this.gpuTempLabel.set_label(data.gpuTemp >= 0 ? `${data.gpuTemp}°C` : 'N/A');
     
     // Update system load
     this.load1minLabel.set_label(data.systemLoad.load1.toFixed(2));
@@ -331,25 +331,28 @@ export class ResumeComponent {
     cr.arc(centerX, centerY, radius, startAngle, backgroundEndAngle);
     cr.stroke();
     
-    // Progress arc (temperature scale from 0 to 100°C)
-    const maxTemp = 100;
-    const percentage = Math.min((temperature / maxTemp) * 100, 100);
-    const maxAngle = 2 * Math.PI - gapAngle;
-    const progressAngle = maxAngle * percentage / 100;
-    const endAngle = startAngle + progressAngle;
-    
-    // Color gradient based on temperature
-    if (temperature < 50) {
-      cr.setSourceRGBA(0.2, 0.7, 0.3, 1); // Green (cool)
-    } else if (temperature < 70) {
-      cr.setSourceRGBA(0.9, 0.7, 0.1, 1); // Yellow (warm)
-    } else {
-      cr.setSourceRGBA(0.9, 0.2, 0.2, 1); // Red (hot)
+    // Only draw progress if temperature is available
+    if (temperature >= 0) {
+      // Progress arc (temperature scale from 0 to 100°C)
+      const maxTemp = 100;
+      const percentage = Math.min((temperature / maxTemp) * 100, 100);
+      const maxAngle = 2 * Math.PI - gapAngle;
+      const progressAngle = maxAngle * percentage / 100;
+      const endAngle = startAngle + progressAngle;
+      
+      // Color gradient based on temperature
+      if (temperature < 50) {
+        cr.setSourceRGBA(0.2, 0.7, 0.3, 1); // Green (cool)
+      } else if (temperature < 70) {
+        cr.setSourceRGBA(0.9, 0.7, 0.1, 1); // Yellow (warm)
+      } else {
+        cr.setSourceRGBA(0.9, 0.2, 0.2, 1); // Red (hot)
+      }
+      
+      cr.setLineWidth(lineWidth);
+      cr.arc(centerX, centerY, radius, startAngle, endAngle);
+      cr.stroke();
     }
-    
-    cr.setLineWidth(lineWidth);
-    cr.arc(centerX, centerY, radius, startAngle, endAngle);
-    cr.stroke();
   }
 
   public getWidget(): Gtk.Box {

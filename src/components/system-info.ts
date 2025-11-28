@@ -184,11 +184,15 @@ export class SystemInfoComponent {
             }
             break;
           case 'Battery':
-            title = `Battery${result.modelName ? ' (' + result.modelName + ')' : ''}`;
-            const status = result.status ? ` [${result.status}]` : '';
-            const battPct = result.percentage !== undefined ? `${result.percentage.toFixed(1)}%` : 'N/A';
-            subtitle = `${battPct}${status}`;
-            icon = result.status === 'AC Connected' ? 'battery-full-charging-symbolic' : 'battery-symbolic';
+            // Battery data comes as an array, take the first battery
+            const battery = Array.isArray(result) ? result[0] : result;
+            if (battery) {
+              title = `Battery${battery.modelName ? ' (' + battery.modelName + ')' : ''}`;
+              const status = battery.status ? ` [${battery.status}]` : '';
+              const battPct = battery.capacity !== undefined ? `${battery.capacity.toFixed(1)}%` : 'N/A';
+              subtitle = `${battPct}${status}`;
+              icon = battery.status === 'Charging' ? 'battery-full-charging-symbolic' : 'battery-symbolic';
+            }
             break;
           case 'Locale':
             title = 'Locale';
