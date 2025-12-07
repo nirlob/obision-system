@@ -6,7 +6,7 @@ export class SettingsService {
 
   private constructor() {
     this.settings = new Gio.Settings({
-      schema_id: 'com.obysion.obysion-system',
+      schema_id: 'com.obision.obision-system',
     });
   }
 

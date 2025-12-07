@@ -47,7 +47,7 @@ export class CpuComponent {
     
     try {
       try {
-        builder.add_from_file('/usr/share/com.obysion.ObysionSystem/ui/cpu.ui');
+        builder.add_from_file('/usr/share/com.obision.ObisionSystem/ui/cpu.ui');
       } catch (e) {
         builder.add_from_file('data/ui/cpu.ui');
       }

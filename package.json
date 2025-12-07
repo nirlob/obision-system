@@ -1,7 +1,7 @@
 {
-  "name": "obysion-system",
+  "name": "obision-system",
   "version": "1.0.0",
-  "description": "System monitoring application",
+  "description": "System monitoring, status and info application",
   "main": "builddir/main.js",
   "scripts": {
     "build": "node scripts/build.js && glib-compile-schemas data/",

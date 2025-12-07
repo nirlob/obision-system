@@ -47,7 +47,7 @@ export class ResumeComponent {
     
     try {
       try {
-        builder.add_from_file('/usr/share/com.obysion.ObysionSystem/ui/resume.ui');
+        builder.add_from_file('/usr/share/com.obision.ObisionSystem/ui/resume.ui');
       } catch (e) {
         builder.add_from_file('data/ui/resume.ui');
       }

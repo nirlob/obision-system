@@ -38,7 +38,7 @@ export class MemoryComponent {
     
     try {
       try {
-        builder.add_from_file('/usr/share/com.obysion.ObysionSystem/ui/memory.ui');
+        builder.add_from_file('/usr/share/com.obision.ObisionSystem/ui/memory.ui');
       } catch (e) {
         builder.add_from_file('data/ui/memory.ui');
       }

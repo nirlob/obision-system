@@ -1,10 +1,10 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Obysion System Monitor
+Name=Obision System
 Comment=A modern system status and monitoring application
 Icon=@app_id@
-Exec=obysion-system
+Exec=obision-system
 Terminal=false
 Categories=System;Monitor;Utility;
 StartupNotify=true

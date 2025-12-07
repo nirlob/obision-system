@@ -28,7 +28,7 @@ export class DriversComponent {
     
     try {
       try {
-        builder.add_from_file('/usr/share/com.obysion.ObysionSystem/ui/drivers.ui');
+        builder.add_from_file('/usr/share/com.obision.ObisionSystem/ui/drivers.ui');
       } catch (e) {
         builder.add_from_file('data/ui/drivers.ui');
       }

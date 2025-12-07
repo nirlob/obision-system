@@ -1,18 +1,52 @@
 # Changelog
 
+## [1.0.1] - 2025-12-07
+
+### Fixed
+- **Naming Correction**: Fixed spelling from "Obysion" to "Obision" throughout the project
+  - Updated application ID: `com.obysion.ObysionSystem` → `com.obision.ObisionSystem`
+  - Updated package name: `obysion-system` → `obision-system`
+  - Updated executable: `obysion-system` → `obision-system`
+  - Renamed all configuration files and icons to use correct spelling
+  - Updated all source code references
+
+- **Battery Information**: Fixed "N/A" display in system-info component
+  - Now correctly parses battery data from fastfetch (array format)
+  - Displays battery capacity, status, and model name
+  - Added proper handling for systems without battery sensors
+
+- **Temperature Display**: Fixed "NaN" in resume component temperature gauges
+  - Returns -1 when temperature sensors are not available
+  - Displays "N/A" instead of invalid numbers
+  - Temperature charts only draw when valid data is available
+  - Added fallback search for thermal zones (thermal_zone0 through thermal_zone5)
+
+### Added
+- **Icon System**: Complete icon set with multiple resolutions
+  - Modern GNOME-style design with blue gradient
+  - Added 128x128 and 256x256 sizes for HiDPI support
+  - Generated PNG icons: 48x48, 64x64, 128x128, 256x256
+  - Maintained SVG scalable version
+  - Updated meson.build to install all icon sizes
+
+- **Build System**: 
+  - Added `sudo` to meson-install and meson-uninstall scripts
+  - Updated meson-clean to remove gschemas.compiled files
+  - Fixed GResource configuration (removed xml-stripblanks requirement)
+  - Added all UI files and CSS to gresource bundle
+
+### Changed
+- Application name: "Obysion System Monitor" → "Obision System"
+- Desktop file updated with correct executable name
+
 ## [1.0.0] - 2025-11-26
 
-### Rebranding
-- Renamed project from "Obision Status" to "Obysion System"
-- Updated application ID from `com.obision.ObisionStatus` to `com.obysion.ObysionSystem`
-- Updated GSettings schema ID to `com.obysion.obysion-system`
-- Renamed all configuration files:
-  - `com.obision.ObisionStatus.gschema.xml` → `com.obysion.ObysionSystem.gschema.xml`
-  - `com.obision.ObisionStatus.desktop.in` → `com.obysion.ObysionSystem.desktop.in`
-  - `com.obision.ObisionStatus.gresource.xml` → `com.obysion.ObysionSystem.gresource.xml`
-  - `bin/obision-status.in` → `bin/obysion-system.in`
-- Renamed all icon files to match new branding
-- Updated executable name from `obision-status` to `obysion-system`
+### Initial Release
+- Complete system monitoring application for GNOME
+- Dashboard with circular charts and system overview
+- Multiple monitoring components (CPU, GPU, Memory, Disk, Network, etc.)
+- Settings persistence with GSettings
+- Modern GTK4/Libadwaita UI
 
 ### New Features
 - **Dashboard Component (Resume)**:

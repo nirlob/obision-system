@@ -21,7 +21,7 @@ class ObisionStatusApplication {
   constructor() {
     // Create the application
     this.application = new Adw.Application({
-      application_id: 'com.obysion.ObysionSystem',
+      application_id: 'com.obision.ObisionSystem',
       flags: Gio.ApplicationFlags.DEFAULT_FLAGS,
     });
 
@@ -71,7 +71,7 @@ class ObisionStatusApplication {
     // Load CSS
     const cssProvider = new Gtk.CssProvider();
     try {
-      cssProvider.load_from_path('/usr/share/com.obysion.ObysionSystem/style.css');
+      cssProvider.load_from_path('/usr/share/com.obision.ObisionSystem/style.css');
     } catch (e) {
       cssProvider.load_from_path('data/style.css');
     }
@@ -95,7 +95,7 @@ class ObisionStatusApplication {
     try {
       // Try installed path first
       try {
-        builder.add_from_file('/usr/share/com.obysion.ObysionSystem/ui/main.ui');
+        builder.add_from_file('/usr/share/com.obision.ObisionSystem/ui/main.ui');
       } catch (e) {
         builder.add_from_file('data/ui/main.ui');
       }
@@ -321,15 +321,15 @@ class ObisionStatusApplication {
     const aboutDialog = new Adw.AboutWindow({
       transient_for: parent,
       modal: true,
-      application_name: 'Obysion System',
-      application_icon: 'com.obysion.ObysionSystem',
+      application_name: 'Obision System',
+      application_icon: 'com.obision.ObisionSystem',
       developer_name: 'Jose Francisco Gonzalez',
       version: '1.0.0',
       developers: ['Jose Francisco Gonzalez <jfgs1609@gmail.com>'],
       copyright: `© ${new Date().getFullYear()} Jose Francisco Gonzalez`,
       license_type: Gtk.License.GPL_3_0,
-      website: 'https://obysion.com',
-      issue_url: 'https://github.com/nirlob/obysion-system/issues',
+      website: 'https://obision.com',
+      issue_url: 'https://github.com/nirlob/obision-system/issues',
     });
 
     aboutDialog.present();
@@ -340,7 +340,7 @@ class ObisionStatusApplication {
     
     try {
       try {
-        builder.add_from_file('/usr/share/com.obysion.ObysionSystem/ui/preferences.ui');
+        builder.add_from_file('/usr/share/com.obision.ObisionSystem/ui/preferences.ui');
       } catch (e) {
         builder.add_from_file('data/ui/preferences.ui');
       }

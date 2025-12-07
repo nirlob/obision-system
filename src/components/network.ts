@@ -27,7 +27,7 @@ export class NetworkComponent {
     
     try {
       try {
-        builder.add_from_file('/usr/share/com.obysion.ObysionSystem/ui/network.ui');
+        builder.add_from_file('/usr/share/com.obision.ObisionSystem/ui/network.ui');
       } catch (e) {
         builder.add_from_file('data/ui/network.ui');
       }

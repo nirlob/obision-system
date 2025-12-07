@@ -32,7 +32,7 @@ export class LogsComponent {
 
         const builder = Gtk.Builder.new();
         try {
-            builder.add_from_file('/usr/share/com.obysion.ObysionSystem/ui/logs.ui');
+            builder.add_from_file('/usr/share/com.obision.ObisionSystem/ui/logs.ui');
         } catch (e) {
             builder.add_from_file('data/ui/logs.ui');
         }

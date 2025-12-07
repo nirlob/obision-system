@@ -1,4 +1,4 @@
-project('obysion-system',
+project('obision-system',
   version: '1.0.0',
   meson_version: '>= 0.59.0',
 )
@@ -6,7 +6,7 @@ project('obysion-system',
 gnome = import('gnome')
 
 # Application ID
-app_id = 'com.obysion.ObysionSystem'
+app_id = 'com.obision.ObisionSystem'
 
 # Configuration
 conf = configuration_data()
@@ -82,8 +82,8 @@ install_data('data/icons/hicolor/256x256/apps/' + app_id + '.png',
 
 # Create launcher script
 configure_file(
-  input: 'bin/obysion-system.in',
-  output: 'obysion-system',
+  input: 'bin/obision-system.in',
+  output: 'obision-system',
   configuration: conf,
   install: true,
   install_dir: bindir,

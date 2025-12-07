@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schemalist gettext-domain="obysion-system">
-  <schema id="com.obysion.obysion-system" path="/com/obysion/obysion-system/">
+<schemalist gettext-domain="obision-system">
+  <schema id="com.obision.obision-system" path="/com/obision/obision-system/">
     <key name="window-width" type="i">
       <default>1200</default>
       <summary>Window width</summary>

@@ -542,9 +542,9 @@ if (fs.existsSync(dataJsonSrc)) {
 }
 
 // Copy and compile GSettings schema
-const schemaFile = 'data/com.obysion.ObysionSystem.gschema.xml';
+const schemaFile = 'data/com.obision.ObisionSystem.gschema.xml';
 const schemaDestDir = path.join(BUILD_DIR, 'data');
-const schemaDest = path.join(schemaDestDir, 'com.obysion.ObysionSystem.gschema.xml');
+const schemaDest = path.join(schemaDestDir, 'com.obision.ObisionSystem.gschema.xml');
 
 if (fs.existsSync(schemaFile)) {
     execSync(`mkdir -p ${schemaDestDir} && cp ${schemaFile} ${schemaDest}`, { stdio: 'pipe' });
