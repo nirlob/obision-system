@@ -1,5 +1,11 @@
 obision-system (1.0.1) unstable; urgency=medium
 
+  * Release version 1.0.1
+
+ -- Jose Francisco Gonzalez <jfgs1609@gmail.com>  Sun, 07 Dec 2025 22:40:16 +0100
+
+obision-system (1.0.1) unstable; urgency=medium
+
   * Initial Debian package release
   * Fixed naming from Obysion to Obision
   * Fixed battery and temperature display issues
