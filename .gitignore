@@ -48,3 +48,14 @@ Thumbs.db
 # Logs
 logs/
 *.log
+
+# Debian packaging
+*.deb
+*.buildinfo
+*.changes
+debian/obision-system/
+debian/.debhelper/
+debian/files
+debian/debhelper-build-stamp
+debian/*.substvars
+debian/*.log

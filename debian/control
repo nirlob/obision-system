@@ -1,0 +1,39 @@
+Source: obision-system
+Section: utils
+Priority: optional
+Maintainer: Jose Francisco Gonzalez <jfgs1609@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               meson,
+               gjs,
+               libglib2.0-dev,
+               libgtk-4-dev,
+               libadwaita-1-dev,
+               nodejs,
+               npm
+Standards-Version: 4.6.0
+Homepage: https://github.com/nirlob/obision-system
+Vcs-Git: https://github.com/nirlob/obision-system.git
+Vcs-Browser: https://github.com/nirlob/obision-system
+
+Package: obision-system
+Architecture: all
+Depends: ${misc:Depends},
+         gjs,
+         libgtk-4-1,
+         libadwaita-1-0,
+         libglib2.0-0
+Description: Modern system monitoring application for GNOME
+ Obision System is a comprehensive system monitoring application for
+ GNOME that provides real-time information about:
+ .
+  * CPU usage and temperature
+  * GPU usage and temperature
+  * Memory and disk usage
+  * Network statistics
+  * System processes
+  * System services
+  * Hardware drivers
+  * System logs
+ .
+ Features a modern GTK4/Libadwaita interface with circular charts,
+ customizable refresh intervals, and persistent settings.

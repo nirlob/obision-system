@@ -341,6 +341,79 @@ gjs --debugger builddir/main.js
 journalctl -xe | grep obysion-system
 ```
 
+## Debian Package
+
+### Building the .deb Package
+```bash
+# Build the debian package
+npm run deb-build
+
+# The .deb file will be created in builddir/obision-system.deb
+```
+
+### Installing the Package
+```bash
+# Install the built package
+npm run deb-install
+
+# Or manually
+sudo dpkg -i builddir/obision-system.deb
+sudo apt-get install -f  # Install dependencies if needed
+```
+
+### Uninstalling the Package
+```bash
+npm run deb-uninstall
+```
+
+## Release Process
+
+### Automated Release
+Use the release script to automatically bump version, update files, and create git tag:
+
+```bash
+# This will:
+# 1. Increment patch version (e.g., 1.0.0 → 1.0.1)
+# 2. Update package.json, meson.build, and debian/changelog
+# 3. Commit changes
+# 4. Create annotated git tag
+# 5. Push changes and tag to origin
+npm run release
+```
+
+### Manual Release
+If you need more control over versioning:
+
+```bash
+# 1. Update version in package.json
+nano package.json
+
+# 2. Update version in meson.build
+nano meson.build
+
+# 3. Update debian/changelog
+dch -i  # Or edit manually
+
+# 4. Commit and tag
+git add .
+git commit -m "Release version X.X.X"
+git tag -a vX.X.X -m "Version X.X.X"
+git push origin master
+git push origin vX.X.X
+```
+
+### GitHub Actions Workflow
+When you push a tag (e.g., `v1.0.1`), GitHub Actions will automatically:
+1. Build the project
+2. Create the `.deb` package
+3. Create a GitHub Release with the package attached
+4. Generate release notes
+
+To trigger a release:
+```bash
+npm run release  # This creates and pushes the tag
+```
+
 ## Contributing
 
 1. Fork the repository

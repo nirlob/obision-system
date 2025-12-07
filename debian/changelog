@@ -1,0 +1,8 @@
+obision-system (1.0.1) unstable; urgency=medium
+
+  * Initial Debian package release
+  * Fixed naming from Obysion to Obision
+  * Fixed battery and temperature display issues
+  * Added complete icon set with HiDPI support
+
+ -- Jose Francisco Gonzalez <jfgs1609@gmail.com>  Sat, 07 Dec 2025 00:00:00 +0000

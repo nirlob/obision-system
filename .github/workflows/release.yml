@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            meson \
+            gjs \
+            libgtk-4-dev \
+            libadwaita-1-dev \
+            libglib2.0-dev \
+            librsvg2-bin \
+            debhelper \
+            devscripts \
+            build-essential
+      
+      - name: Install npm dependencies
+        run: npm install
+      
+      - name: Build TypeScript
+        run: npm run build
+      
+      - name: Build Debian package
+        run: npm run deb-build
+      
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: builddir/obision-system.deb
+          generate_release_notes: true
+          name: Release ${{ steps.get_version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,21 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE = 1
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	npm install
+	npm run build
+	meson setup builddir --prefix=/usr
+
+override_dh_auto_build:
+	meson compile -C builddir
+
+override_dh_auto_install:
+	DESTDIR=$(CURDIR)/debian/obision-system meson install -C builddir
+
+override_dh_auto_clean:
+	rm -rf builddir node_modules mesonbuilddir
+	dh_clean

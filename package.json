@@ -7,12 +7,17 @@
     "build": "node scripts/build.js && glib-compile-schemas data/",
     "dev": "tsc --watch",
     "start": "npm run build && GSETTINGS_SCHEMA_DIR=builddir/data ./builddir/main.js",
-    "clean": "rm -rf builddir && rm -rf mesonbuilddir",
+    "clean": "rm -rf builddir && rm -rf mesonbuilddir && rm -rf debian/obision-system debian/.debhelper debian/files debian/debhelper-build-stamp",
     "meson-setup": "meson setup mesonbuilddir --prefix=/usr",
     "meson-compile": "meson compile -C mesonbuilddir",
     "meson-install": "npm run build && npm run meson-setup && npm run meson-compile && cd mesonbuilddir && sudo meson install",
     "meson-uninstall": "cd mesonbuilddir && sudo ninja uninstall && cd .. && npm run meson-clean",
-    "meson-clean": "rm -rf mesonbuilddir builddir && rm -f data/gschemas.compiled*"
+    "meson-clean": "rm -rf mesonbuilddir builddir && rm -f data/gschemas.compiled*",
+    "deb-build": "dpkg-buildpackage -us -uc -b && mkdir -p builddir && mv ../obision-system_*.deb builddir/obision-system.deb && mv ../obision-system_*.buildinfo builddir/ 2>/dev/null || true && mv ../obision-system_*.changes builddir/ 2>/dev/null || true",
+    "deb-install": "sudo dpkg -i builddir/obision-system.deb && sudo apt-get install -f",
+    "deb-uninstall": "sudo apt-get remove obision-system -y",
+    "deb-clean": "dh_clean || true",
+    "release": "./scripts/release.sh"
   },
   "keywords": [
     "gnome",
