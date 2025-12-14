@@ -5,16 +5,7 @@
        This UI definition matches the structure created in code for reference. -->
   <object class="GtkBox" id="system_info_container">
     <property name="orientation">vertical</property>
-    <property name="spacing">12</property>
-    <child>
-      <object class="GtkLabel" id="system_info_title">
-        <property name="label" translatable="yes">System Information</property>
-        <property name="halign">start</property>
-        <style>
-          <class name="title-1"/>
-        </style>
-      </object>
-    </child>
+    <property name="spacing">0</property>
     <child>
       <object class="GtkScrolledWindow" id="system_info_scrolled">
         <property name="vexpand">true</property>

@@ -374,7 +374,7 @@
                             </child>
                             <child>
                               <object class="GtkLabel">
-                                <property name="label" translatable="yes">System Info</property>
+                                <property name="label" translatable="yes">System Information</property>
                                 <property name="halign">start</property>
                                 <property name="hexpand">true</property>
                               </object>

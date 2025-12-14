@@ -1,7 +1,7 @@
-# Obysion System - AI Agent Instructions
+# Obision System - AI Agent Instructions
 
 ## Project Overview
-A GNOME system monitoring application built with TypeScript, GTK4, and Libadwaita. Displays system information using a responsive navigation split-view layout. Uses a **hybrid build system**: TypeScript → GJS-compatible JavaScript via custom Node.js build script (`scripts/build.js`).
+A GNOME system monitoring application built with TypeScript, GTK4, and Libadwaita. Displays comprehensive system information (CPU, GPU, memory, disk, network, temperatures, processes, services, drivers, logs) using a responsive navigation split-view layout. Uses a **hybrid build system**: TypeScript → GJS-compatible JavaScript via custom Node.js build script (`scripts/build.js`).
 
 ## Critical Build System
 **NEVER use `tsc` directly.** Always use `npm run build` which:
@@ -9,27 +9,28 @@ A GNOME system monitoring application built with TypeScript, GTK4, and Libadwait
 2. Strips CommonJS/TypeScript artifacts (`exports`, `require`, `__importDefault`, `void 0`)
 3. **Combines all modules into a single `builddir/main.js`** with GJS-compatible imports
 4. Converts `@girs` imports to GJS `imports.gi` syntax (e.g., `import Gtk from "@girs/gtk-4.0"` → `const { Gtk } = imports.gi;`)
-5. Copies resources (`data/ui/*.ui`, `data/style.css`, `data/icons/`, `data/applications.json`) to `builddir/data/`
+5. Copies resources (`data/ui/*.ui`, `data/style.css`, `data/icons/`, GSettings schema) to `builddir/data/`
 
-**Build concatenation order is critical** (`scripts/build.js` lines 66-265):
+**Build concatenation order is critical** (`scripts/build.js`):
 ```javascript
 // Order: interfaces → services → components → main
-// 1. interfaces/application.js, interfaces/category.js
-// 2. services/utils-service.js, services/data-service.js
-// 3. components/install-dialog.js, components/application-info-dialog.js, 
-//    components/resume.js, components/system-info.js, components/resources.js,
-//    components/processes.js, components/applications-list.js
+// 1. interfaces/*.js (stripped during transpilation)
+// 2. services/settings-service.js, utils-service.js, resume-service.js,
+//    network-service.js, processes-service.js, logs-service.js
+// 3. components/resume.js, cpu.js, gpu.js, memory.js, disk.js, network.js,
+//    system-info.js, resources.js, processes.js, services.js, drivers.js, logs.js
 // 4. main.js
 ```
 Order prevents undefined references in the single-file output. Adding new modules requires updating `scripts/build.js` in correct sequence.
 
 ## Run Commands
-- **Development**: `npm start` (builds + runs application)
-- **Build only**: `npm run build` (compile TypeScript → GJS)
-- **Watch mode**: `npm run dev` (TypeScript watch, rebuild on changes)
-- **Direct run**: `./builddir/main.js` (after building)
-- **Production install**: `npm run meson-install` (Meson compile + system-wide install, requires sudo)
-- **Clean**: `npm run clean` (remove build + meson artifacts)
+- **Development**: `npm start` (builds + runs with `GSETTINGS_SCHEMA_DIR=builddir/data`)
+- **Build only**: `npm run build` (compile TypeScript → GJS + compile GSettings schema)
+- **Watch mode**: `npm run dev` (TypeScript watch, manual rebuild needed)
+- **Direct run**: `GSETTINGS_SCHEMA_DIR=builddir/data ./builddir/main.js` (after building)
+- **Production install**: `npm run meson-install` (builds, meson setup, compile, sudo install)
+- **Debian package**: `npm run deb-build` (creates .deb in builddir/)
+- **Clean**: `npm run clean` (removes builddir/, mesonbuilddir/, debian artifacts)
 
 ## Architecture
 
@@ -41,7 +42,7 @@ class ObisionStatusApplication {
   
   constructor() {
     this.application = new Adw.Application({
-      application_id: 'com.obision.ObisionStatus',
+      application_id: 'com.obision.ObisionSystem',  // Note: ObisionSystem, not ObisionStatus
       flags: Gio.ApplicationFlags.DEFAULT_FLAGS,
     });
     this.application.connect('activate', this.onActivate.bind(this));
@@ -151,7 +152,7 @@ All UI loading uses try/catch for installed vs. development paths:
 ```typescript
 const builder = Gtk.Builder.new();
 try {
-  builder.add_from_file('/usr/share/com.obision.ObisionStatus/ui/main.ui'); // Installed
+  builder.add_from_file('/usr/share/com.obision.ObisionSystem/ui/main.ui'); // Installed
 } catch (e) {
   builder.add_from_file('data/ui/main.ui'); // Development
 }
@@ -165,20 +166,27 @@ src/
 ├── main.ts                          # Entry point, app lifecycle, navigation
 ├── services/
 │   ├── utils-service.ts            # System command execution via Gio.Subprocess
-│   └── data-service.ts             # Data management service
+│   ├── settings-service.ts         # GSettings integration for persistent configuration
+│   ├── resume-service.ts           # Resume/dashboard data aggregation
+│   ├── network-service.ts          # Network statistics and monitoring
+│   ├── processes-service.ts        # Process information and management
+│   └── logs-service.ts             # System logs parsing
 ├── components/
 │   ├── resume.ts                   # Dashboard with CPU/memory charts (Gtk.DrawingArea)
+│   ├── cpu.ts, gpu.ts, memory.ts, disk.ts, network.ts  # Resource-specific views
 │   ├── system-info.ts              # System details view
-│   ├── resources.ts                # Resource monitoring
-│   ├── processes.ts                # Process list
-│   └── applications-list.ts        # Applications management
+│   ├── resources.ts                # Combined resource monitoring
+│   ├── processes.ts                # Process list with filtering
+│   ├── services.ts                 # System services management
+│   ├── drivers.ts                  # Hardware drivers information
+│   └── logs.ts                     # System logs viewer
 └── interfaces/
-    └── application.ts              # TypeScript type definitions
+    ├── resume.ts, network.ts, processes.ts, logs.ts  # TypeScript type definitions
 
 data/
-├── ui/*.ui                         # GTK Builder XML files
+├── ui/*.ui                         # GTK Builder XML files (one per component)
 ├── style.css                       # GTK4/Adwaita CSS customizations
-├── applications.json               # App data
+├── com.obision.ObisionSystem.gschema.xml  # GSettings schema
 └── icons/                          # Icon assets
 
 scripts/build.js                    # Custom TypeScript → GJS compiler
@@ -221,11 +229,11 @@ Modern GNOME 45+ UI components (`data/ui/main.ui`):
 - **`AdwAboutWindow`**: Standard GNOME about dialog (`src/main.ts` lines 134-148)
 
 ### CSS Loading
-Load styles early in `onActivate()` (`src/main.ts` lines 54-65):
+Load styles early in `onActivate()` (`src/main.ts` lines 70-81):
 ```typescript
 const cssProvider = new Gtk.CssProvider();
 try {
-  cssProvider.load_from_path('/usr/share/com.obision.ObisionStatus/style.css');
+  cssProvider.load_from_path('/usr/share/com.obision.ObisionSystem/style.css');
 } catch (e) {
   cssProvider.load_from_path('data/style.css'); // Development fallback
 }
@@ -268,17 +276,17 @@ this.cpuChart.queue_draw(); // Trigger redraw
 ## Meson Build System
 `meson.build` handles production installation (dual build system with npm):
 - Installs **compiled JS from `builddir/main.js`** (not TypeScript sources)
-- Creates launcher script in `/usr/bin/` from `bin/obision-status.in` template
-- Compiles GResources bundle from `data/com.obision.ObisionStatus.gresource.xml`
-- Installs desktop file (`data/com.obision.ObisionStatus.desktop.in`), icons, GSettings schema
-- Uses app ID `com.obision.ObisionStatus` throughout
+- Creates launcher script in `/usr/bin/` from `bin/obision-system.in` template
+- Compiles GResources bundle from `data/com.obision.ObisionSystem.gresource.xml`
+- Installs desktop file (`data/com.obision.ObisionSystem.desktop.in`), icons, GSettings schema
+- Uses app ID `com.obision.ObisionSystem` throughout
 
-**Install paths** (lines 24-63):
-- Binary: `/usr/bin/obision-status` → `/usr/share/com.obision.ObisionStatus/main.js`
-- UI files: `/usr/share/com.obision.ObisionStatus/ui/*.ui`
-- CSS: `/usr/share/com.obision.ObisionStatus/style.css`
-- Icons: `/usr/share/icons/hicolor/{scalable,48x48,64x64}/apps/com.obision.ObisionStatus.*`
-- Schema: `/usr/share/glib-2.0/schemas/com.obision.ObisionStatus.gschema.xml`
+**Install paths**:
+- Binary: `/usr/bin/obision-system` → `/usr/share/com.obision.ObisionSystem/main.js`
+- UI files: `/usr/share/com.obision.ObisionSystem/ui/*.ui`
+- CSS: `/usr/share/com.obision.ObisionSystem/style.css`
+- Icons: `/usr/share/icons/hicolor/{scalable,48x48,64x64}/apps/com.obision.ObisionSystem.*`
+- Schema: `/usr/share/glib-2.0/schemas/com.obision.ObisionSystem.gschema.xml`
 
 ## Common Tasks
 
