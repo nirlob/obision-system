@@ -1,6 +1,7 @@
 import Gtk from '@girs/gtk-4.0';
 import GLib from '@girs/glib-2.0';
 import { UtilsService } from '../services/utils-service';
+import { DataService } from '../services/data-service';
 
 export class CpuComponent {
   private container: Gtk.Box;
@@ -32,6 +33,7 @@ export class CpuComponent {
   private cpuBogomipsValue!: Gtk.Label;
   private updateTimeoutId: number | null = null;
   private utils: UtilsService;
+  private dataService: DataService;
   private usageHistory: number[] = [];
   private perCoreUsage: number[] = [];
   private prevCoreIdle: number[] = [];
@@ -43,6 +45,7 @@ export class CpuComponent {
 
   constructor() {
     this.utils = UtilsService.instance;
+    this.dataService = DataService.instance;
     const builder = Gtk.Builder.new();
     
     try {
@@ -131,108 +134,70 @@ export class CpuComponent {
 
   private loadCpuInfo(): void {
     try {
-      // Get CPU model (force English output with LC_ALL=C)
-      const [modelOut] = this.utils.executeCommand('sh', ['-c', 'LC_ALL=C lscpu']);
-      const modelMatch = modelOut.match(/Model name:\s+(.+)/);
-      if (modelMatch) {
-        this.cpuModelValue.set_label(modelMatch[1].trim());
+      const cpuInfo = this.dataService.getCpuInfo();
+      
+      if (cpuInfo.model) {
+        this.cpuModelValue.set_label(cpuInfo.model);
       }
       
-      // Get cores and threads
-      const totalCoresMatch = modelOut.match(/CPU\(s\):\s+(\d+)/);
-      const coresMatch = modelOut.match(/Core\(s\) per socket:\s+(\d+)/);
-      const socketsMatch = modelOut.match(/Socket\(s\):\s+(\d+)/);
-      
-      if (totalCoresMatch && coresMatch && socketsMatch) {
-        const totalCores = parseInt(totalCoresMatch[1]);
-        const physicalCores = parseInt(coresMatch[1]) * parseInt(socketsMatch[1]);
-        
-        this.cpuCoresValue.set_label(physicalCores.toString());
-        this.cpuThreadsValue.set_label(totalCores.toString());
-        
-        // Calculate logical cores (total cores - physical cores)
-        const logicalCores = totalCores - physicalCores;
-        this.cpuLogicalCoresValue.set_label(logicalCores.toString());
+      if (cpuInfo.cores) {
+        this.cpuCoresValue.set_label(cpuInfo.cores.toString());
       }
       
-      // Get architecture
-      const archMatch = modelOut.match(/Architecture:\s+(.+)/);
-      if (archMatch) {
-        this.cpuArchitectureValue.set_label(archMatch[1].trim());
+      if (cpuInfo.threads) {
+        this.cpuThreadsValue.set_label(cpuInfo.threads.toString());
       }
       
-      // Get vendor ID
-      const vendorMatch = modelOut.match(/Vendor ID:\s+(.+)/);
-      if (vendorMatch) {
-        this.cpuVendorValue.set_label(vendorMatch[1].trim());
+      if (cpuInfo.logicalCores) {
+        this.cpuLogicalCoresValue.set_label(cpuInfo.logicalCores.toString());
       }
       
-      // Get CPU family
-      const familyMatch = modelOut.match(/CPU family:\s+(\d+)/);
-      if (familyMatch) {
-        this.cpuFamilyValue.set_label(familyMatch[1].trim());
+      if (cpuInfo.architecture) {
+        this.cpuArchitectureValue.set_label(cpuInfo.architecture);
       }
       
-      // Get Model ID
-      const modelIdMatch = modelOut.match(/Model:\s+(\d+)/);
-      if (modelIdMatch) {
-        this.cpuModelIdValue.set_label(modelIdMatch[1].trim());
+      if (cpuInfo.vendor) {
+        this.cpuVendorValue.set_label(cpuInfo.vendor);
       }
       
-      // Get Stepping
-      const steppingMatch = modelOut.match(/Stepping:\s+(\d+)/);
-      if (steppingMatch) {
-        this.cpuSteppingValue.set_label(steppingMatch[1].trim());
+      if (cpuInfo.family) {
+        this.cpuFamilyValue.set_label(cpuInfo.family);
       }
       
-      // Get cache sizes
-      const l1dMatch = modelOut.match(/L1d cache:\s+(.+)/);
-      if (l1dMatch) {
-        this.cpuL1dCacheValue.set_label(l1dMatch[1].trim());
+      if (cpuInfo.modelId) {
+        this.cpuModelIdValue.set_label(cpuInfo.modelId);
       }
       
-      const l1iMatch = modelOut.match(/L1i cache:\s+(.+)/);
-      if (l1iMatch) {
-        this.cpuL1iCacheValue.set_label(l1iMatch[1].trim());
+      if (cpuInfo.stepping) {
+        this.cpuSteppingValue.set_label(cpuInfo.stepping);
       }
       
-      const l2Match = modelOut.match(/L2 cache:\s+(.+)/);
-      if (l2Match) {
-        this.cpuL2CacheValue.set_label(l2Match[1].trim());
+      if (cpuInfo.l1dCache) {
+        this.cpuL1dCacheValue.set_label(cpuInfo.l1dCache);
       }
       
-      const l3Match = modelOut.match(/L3 cache:\s+(.+)/);
-      if (l3Match) {
-        this.cpuL3CacheValue.set_label(l3Match[1].trim());
+      if (cpuInfo.l1iCache) {
+        this.cpuL1iCacheValue.set_label(cpuInfo.l1iCache);
       }
       
-      // Get virtualization
-      const virtMatch = modelOut.match(/Virtualization:\s+(.+)/);
-      if (virtMatch) {
-        this.cpuVirtualizationValue.set_label(virtMatch[1].trim());
+      if (cpuInfo.l2Cache) {
+        this.cpuL2CacheValue.set_label(cpuInfo.l2Cache);
       }
       
-      // Get BogoMIPS
-      const bogomipsMatch = modelOut.match(/BogoMIPS:\s+([\d.]+)/);
-      if (bogomipsMatch) {
-        this.cpuBogomipsValue.set_label(bogomipsMatch[1].trim());
+      if (cpuInfo.l3Cache) {
+        this.cpuL3CacheValue.set_label(cpuInfo.l3Cache);
       }
       
-      // Get max frequency
-      try {
-        const [maxFreqOut] = this.utils.executeCommand('cat', ['/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq']);
-        const maxFreqKhz = parseInt(maxFreqOut.trim());
-        if (!isNaN(maxFreqKhz)) {
-          const maxFreqGhz = (maxFreqKhz / 1000000).toFixed(2);
-          this.cpuMaxFrequencyValue.set_label(`${maxFreqGhz} GHz`);
-        }
-      } catch (e) {
-        // If cpufreq not available, try to get from lscpu
-        const maxFreqMatch = modelOut.match(/CPU max MHz:\s+([\d.]+)/);
-        if (maxFreqMatch) {
-          const maxFreqGhz = (parseFloat(maxFreqMatch[1]) / 1000).toFixed(2);
-          this.cpuMaxFrequencyValue.set_label(`${maxFreqGhz} GHz`);
-        }
+      if (cpuInfo.virtualization) {
+        this.cpuVirtualizationValue.set_label(cpuInfo.virtualization);
+      }
+      
+      if (cpuInfo.bogomips) {
+        this.cpuBogomipsValue.set_label(cpuInfo.bogomips);
+      }
+      
+      if (cpuInfo.maxFrequency) {
+        this.cpuMaxFrequencyValue.set_label(`${cpuInfo.maxFrequency} GHz`);
       }
     } catch (error) {
       console.error('Error loading CPU info:', error);

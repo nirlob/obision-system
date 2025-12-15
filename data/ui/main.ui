@@ -249,6 +249,36 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkToggleButton" id="menu_option_6">
+                        <property name="halign">fill</property>
+                        <style>
+                          <class name="flat"/>
+                        </style>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">8</property>
+                            <property name="margin-bottom">8</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon-name">battery-symbolic</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Battery</property>
+                                <property name="halign">start</property>
+                                <property name="hexpand">true</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkSeparator">
                         <property name="orientation">horizontal</property>
                         <property name="margin-top">2</property>
@@ -257,7 +287,7 @@
                     </child>
 
                     <child>
-                      <object class="GtkToggleButton" id="menu_option_8">
+                      <object class="GtkToggleButton" id="menu_option_7">
                         <property name="halign">fill</property>
                         <style>
                           <class name="flat"/>
@@ -354,7 +384,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkToggleButton" id="menu_option_6">
+                      <object class="GtkToggleButton" id="menu_option_8">
                         <property name="halign">fill</property>
                         <style>
                           <class name="flat"/>

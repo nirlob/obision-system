@@ -3,6 +3,7 @@ import Gtk from '@girs/gtk-4.0';
 import Gdk from '@girs/gdk-4.0';
 import Adw from '@girs/adw-1';
 import { SettingsService } from './services/settings-service';
+import { DataService } from './services/data-service';
 import { ResumeComponent } from './components/resume';
 import { CpuComponent } from './components/cpu';
 import { GpuComponent } from './components/gpu';
@@ -10,6 +11,7 @@ import { MemoryComponent } from './components/memory';
 import { DiskComponent } from './components/disk';
 import { NetworkComponent } from './components/network';
 import { SystemInfoComponent } from './components/system-info';
+import { BatteryComponent } from './components/battery';
 import { ProcessesComponent } from './components/processes';
 import { ServicesComponent } from './components/services';
 import { DriversComponent } from './components/drivers';
@@ -147,13 +149,24 @@ class ObisionStatusApplication {
     const menuButton4 = builder.get_object('menu_option_4') as Gtk.ToggleButton;
     const menuButton5 = builder.get_object('menu_option_5') as Gtk.ToggleButton;
         const menuButton6 = builder.get_object('menu_option_6') as Gtk.ToggleButton;
+        const menuButton7 = builder.get_object('menu_option_7') as Gtk.ToggleButton;
         const menuButton8 = builder.get_object('menu_option_8') as Gtk.ToggleButton;
         const menuButton9 = builder.get_object('menu_option_9') as Gtk.ToggleButton;
         const menuButton10 = builder.get_object('menu_option_10') as Gtk.ToggleButton;
         const menuButton11 = builder.get_object('menu_option_11') as Gtk.ToggleButton;
     
+    // Detect if battery exists and hide button if not
+    const dataService = DataService.instance;
+    const hasBattery = dataService.hasBattery();
+    
+    if (!hasBattery) {
+      menuButton6.set_visible(false);
+    }
+    
     // Store all menu buttons for selection management
-    const allMenuButtons = [menuButton0, menuButton1, menuButton2, menuButton3, menuButton4, menuButton5, menuButton6, menuButton8, menuButton9, menuButton10, menuButton11];
+    const allMenuButtons = hasBattery 
+      ? [menuButton0, menuButton1, menuButton2, menuButton3, menuButton4, menuButton5, menuButton6, menuButton7, menuButton8, menuButton9, menuButton10, menuButton11]
+      : [menuButton0, menuButton1, menuButton2, menuButton3, menuButton4, menuButton5, menuButton8, menuButton9, menuButton10, menuButton11];
     
     // Setup navigation
     menuButton0.connect('clicked', () => {
@@ -174,20 +187,25 @@ class ObisionStatusApplication {
     menuButton5.connect('clicked', () => {
       this.onNavigationItemSelected(5, mainContent, menuButton5, allMenuButtons, contentTitle);
     });
-    menuButton6.connect('clicked', () => {
-      this.onNavigationItemSelected(6, mainContent, menuButton6, allMenuButtons, contentTitle);
+    if (hasBattery) {
+      menuButton6.connect('clicked', () => {
+        this.onNavigationItemSelected(6, mainContent, menuButton6, allMenuButtons, contentTitle);
+      });
+    }
+    menuButton7.connect('clicked', () => {
+      this.onNavigationItemSelected(8, mainContent, menuButton7, allMenuButtons, contentTitle);
     });
     menuButton8.connect('clicked', () => {
       this.onNavigationItemSelected(7, mainContent, menuButton8, allMenuButtons, contentTitle);
     });
     menuButton9.connect('clicked', () => {
-      this.onNavigationItemSelected(8, mainContent, menuButton9, allMenuButtons, contentTitle);
+      this.onNavigationItemSelected(9, mainContent, menuButton9, allMenuButtons, contentTitle);
     });
     menuButton10.connect('clicked', () => {
-      this.onNavigationItemSelected(9, mainContent, menuButton10, allMenuButtons, contentTitle);
+      this.onNavigationItemSelected(10, mainContent, menuButton10, allMenuButtons, contentTitle);
     });
     menuButton11.connect('clicked', () => {
-      this.onNavigationItemSelected(10, mainContent, menuButton11, allMenuButtons, contentTitle);
+      this.onNavigationItemSelected(11, mainContent, menuButton11, allMenuButtons, contentTitle);
     });
 
     // Show first view by default
@@ -244,19 +262,22 @@ class ObisionStatusApplication {
       case 5: // Network
         this.showNetwork(contentBox);
         break;
-      case 6: // System Info
+      case 6: // Battery
+        this.showBattery(contentBox);
+        break;
+      case 7: // System Info
         this.showSystemInfo(contentBox);
         break;
-      case 7: // Processes
+      case 8: // Processes
         this.showProcesses(contentBox);
         break;
-      case 8: // Services
+      case 9: // Services
         this.showServices(contentBox);
         break;
-      case 9: // Drivers
+      case 10: // Drivers
         this.showDrivers(contentBox);
         break;
-      case 10: // Logs
+      case 11: // Logs
         this.showLogs(contentBox);
         break;
     }
@@ -294,6 +315,11 @@ class ObisionStatusApplication {
 
   private showSystemInfo(contentBox: Gtk.Box): void {
     const component = new SystemInfoComponent();
+    contentBox.append(component.getWidget());
+  }
+
+  private showBattery(contentBox: Gtk.Box): void {
+    const component = new BatteryComponent();
     contentBox.append(component.getWidget());
   }
 

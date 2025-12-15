@@ -1,7 +1,7 @@
 # Obision System - AI Agent Instructions
 
 ## Project Overview
-A GNOME system monitoring application built with TypeScript, GTK4, and Libadwaita. Displays comprehensive system information (CPU, GPU, memory, disk, network, temperatures, processes, services, drivers, logs) using a responsive navigation split-view layout. Uses a **hybrid build system**: TypeScript → GJS-compatible JavaScript via custom Node.js build script (`scripts/build.js`).
+A modern GNOME system monitoring application built with TypeScript, GTK4, and Libadwaita. Displays comprehensive system information (CPU, GPU, memory, disk, network, temperatures, processes, services, drivers, logs) using an adaptive `AdwNavigationSplitView` layout. Uses a **hybrid build system**: TypeScript → GJS-compatible JavaScript via custom Node.js build script (`scripts/build.js`) that concatenates all modules into a single executable file.
 
 ## Critical Build System
 **NEVER use `tsc` directly.** Always use `npm run build` which:
@@ -14,23 +14,32 @@ A GNOME system monitoring application built with TypeScript, GTK4, and Libadwait
 **Build concatenation order is critical** (`scripts/build.js`):
 ```javascript
 // Order: interfaces → services → components → main
-// 1. interfaces/*.js (stripped during transpilation)
-// 2. services/settings-service.js, utils-service.js, resume-service.js,
-//    network-service.js, processes-service.js, logs-service.js
-// 3. components/resume.js, cpu.js, gpu.js, memory.js, disk.js, network.js,
-//    system-info.js, resources.js, processes.js, services.js, drivers.js, logs.js
-// 4. main.js
+// 1. interfaces/*.js (TypeScript interfaces, stripped during transpilation)
+// 2. Services (in order):
+//    - settings-service.js, utils-service.js, resume-service.js
+//    - network-service.js, processes-service.js, logs-service.js
+// 3. Components (in order):
+//    - resume.js, cpu.js, gpu.js, memory.js, disk.js, network.js
+//    - system-info.js, resources.js, processes.js, services.js, drivers.js, logs.js
+// 4. main.js (application entry point)
 ```
-Order prevents undefined references in the single-file output. Adding new modules requires updating `scripts/build.js` in correct sequence.
+**Critical**: Order prevents undefined references in single-file output. When adding new modules:
+1. Place services before components that use them
+2. Place components before main.js
+3. Update `scripts/build.js` to include new file in correct sequence
+4. Ensure `cleanJSContent()` processes new file properly
 
 ## Run Commands
-- **Development**: `npm start` (builds + runs with `GSETTINGS_SCHEMA_DIR=builddir/data`)
-- **Build only**: `npm run build` (compile TypeScript → GJS + compile GSettings schema)
-- **Watch mode**: `npm run dev` (TypeScript watch, manual rebuild needed)
-- **Direct run**: `GSETTINGS_SCHEMA_DIR=builddir/data ./builddir/main.js` (after building)
-- **Production install**: `npm run meson-install` (builds, meson setup, compile, sudo install)
-- **Debian package**: `npm run deb-build` (creates .deb in builddir/)
-- **Clean**: `npm run clean` (removes builddir/, mesonbuilddir/, debian artifacts)
+- **Development**: `npm start` → Builds + runs with `GSETTINGS_SCHEMA_DIR=builddir/data ./builddir/main.js`
+- **Build only**: `npm run build` → Compiles TS → GJS + compiles GSettings schema via `glib-compile-schemas`
+- **Watch mode**: `npm run dev` → TypeScript watch mode (requires manual `npm run build` to regenerate main.js)
+- **Direct run**: `GSETTINGS_SCHEMA_DIR=builddir/data ./builddir/main.js` (requires prior build)
+- **Production install**: `npm run meson-install` → Full build pipeline (npm build → meson setup → meson compile → sudo install)
+- **Uninstall**: `npm run meson-uninstall` → Removes system installation, cleans build dirs
+- **Debian package**: `npm run deb-build` → Creates .deb in `builddir/obision-system.deb`
+- **Debian install**: `npm run deb-install` → Installs .deb with dependency resolution
+- **Clean**: `npm run clean` → Removes `builddir/`, `mesonbuilddir/`, debian artifacts
+- **Deep clean**: `npm run meson-clean` → Additional GSettings compiled schema cleanup
 
 ## Architecture
 
@@ -124,7 +133,7 @@ export class ResumeComponent {
 Pattern: Load UI from Builder XML, reference widgets by ID, implement `getWidget()` and `destroy()` for lifecycle.
 
 ### Navigation System
-`src/main.ts` implements navigation switching (lines 70-107):
+`src/main.ts` implements navigation switching via `onNavigationItemSelected()`:
 ```typescript
 private onNavigationItemSelected(row: Gtk.ListBoxRow, contentBox: Gtk.Box): void {
   // Clear current content
@@ -135,17 +144,29 @@ private onNavigationItemSelected(row: Gtk.ListBoxRow, contentBox: Gtk.Box): void
     child = next;
   }
   
-  // Switch based on row index
+  // Switch based on row index (maps to navigation_list rows in main.ui)
   const index = row.get_index();
   switch (index) {
-    case 0: this.showResume(contentBox); break;
-    case 1: this.showSystemInfo(contentBox); break;
-    case 2: this.showResources(contentBox); break;
-    case 3: this.showProcesses(contentBox); break;
+    case 0: this.showResume(contentBox); break;        // Dashboard/Resume
+    case 1: this.showSystemInfo(contentBox); break;    // System Information
+    case 2: this.showProcesses(contentBox); break;     // Process Monitor
+    case 3: this.showServices(contentBox); break;      // Services Manager
+    case 4: this.showDrivers(contentBox); break;       // Hardware Drivers
+    case 5: this.showLogs(contentBox); break;          // System Logs
+    // Add new views here
   }
 }
 ```
-To add new views: 1) Add `GtkListBoxRow` in `data/ui/main.ui`, 2) Add case in switch, 3) Create component in `src/components/`, 4) Update `scripts/build.js` concatenation order.
+**Pattern**: Each `showX()` method instantiates component class, calls `getWidget()`, adds to contentBox.
+
+To add new views:
+1. Add `<object class="GtkListBoxRow">` in `data/ui/main.ui` → `navigation_list` (order matters!)
+2. Create component: `src/components/my-view.ts` with `constructor()`, `getWidget()`, `destroy()`
+3. Create UI file: `data/ui/my-view.ui` with root object having unique ID
+4. Add case in `onNavigationItemSelected()` switch
+5. Update `scripts/build.js` concatenation order (add before `main.js`)
+6. Import component in `src/main.ts`: `import { MyViewComponent } from './components/my-view';`
+7. Rebuild: `npm run build && ./builddir/main.js`
 
 ### UI Loading Pattern (Dual-Path Fallback)
 All UI loading uses try/catch for installed vs. development paths:
@@ -219,14 +240,17 @@ const { Pango } = imports.gi;
 ```
 
 ### Adwaita UI Patterns
-Modern GNOME 45+ UI components (`data/ui/main.ui`):
-- **`AdwNavigationSplitView`**: Two-pane layout with responsive sidebar (lines 21-174)
-  - Sidebar: Navigation list with icons
-  - Content: Scrollable main area
-- **`AdwBreakpoint`**: Collapse sidebar when `max-width: 400sp` (lines 12-15)
-- **`AdwToolbarView`**: Header bar + content container (lines 26-68, 101-158)
-- **`AdwHeaderBar`**: Title bar with menu button (lines 28-36, 103-115)
-- **`AdwAboutWindow`**: Standard GNOME about dialog (`src/main.ts` lines 134-148)
+Modern GNOME 45+ UI components used throughout (`data/ui/main.ui`):
+- **`AdwNavigationSplitView`**: Two-pane responsive layout
+  - Sidebar: `GtkListBox` with navigation items (`navigation_list`)
+  - Content: Scrollable area (`main_content`) dynamically populated
+- **`AdwBreakpoint`**: Automatically collapse sidebar when `max-width: 400sp`
+- **`AdwToolbarView`**: Container combining header bar + scrollable content
+- **`AdwHeaderBar`**: Modern title bar with menu button
+- **`AdwAboutWindow`**: Standard GNOME about dialog (created in `showAboutDialog()`)
+- **`AdwPreferencesWindow`**: Settings dialog (created in `showPreferencesDialog()` with GSettings binding)
+
+**Widget naming convention**: Use descriptive IDs in UI files (e.g., `cpu_value`, `memory_chart`, `processes_list`)
 
 ### CSS Loading
 Load styles early in `onActivate()` (`src/main.ts` lines 70-81):
@@ -291,12 +315,35 @@ this.cpuChart.queue_draw(); // Trigger redraw
 ## Common Tasks
 
 ### Adding New Navigation View
-1. **Edit `data/ui/main.ui`**: Add `GtkListBoxRow` to `navigation_list` (follow pattern lines 73-130)
+1. **Edit `data/ui/main.ui`**: Add `<object class="GtkListBoxRow">` to `navigation_list` (order determines index)
+   ```xml
+   <child>
+     <object class="GtkListBoxRow">
+       <property name="child">
+         <object class="GtkBox">
+           <property name="spacing">12</property>
+           <child>
+             <object class="GtkImage">
+               <property name="icon-name">my-icon-symbolic</property>
+             </object>
+           </child>
+           <child>
+             <object class="GtkLabel">
+               <property name="label" translatable="yes">My View</property>
+             </object>
+           </child>
+         </object>
+       </property>
+     </object>
+   </child>
+   ```
 2. **Create component**: `src/components/my-view.ts` with `constructor()`, `getWidget()`, `destroy()`
-3. **Create UI file**: `data/ui/my-view.ui` with root object having unique ID
-4. **Update `src/main.ts`**: Add case in `onNavigationItemSelected()` switch
-5. **Update `scripts/build.js`**: Add component in concatenation order (before `main.js`)
-6. **Rebuild**: `npm run build && ./builddir/main.js`
+3. **Create UI file**: `data/ui/my-view.ui` with root container having unique ID
+4. **Import in main**: Add `import { MyViewComponent } from './components/my-view';` to `src/main.ts`
+5. **Add switch case**: In `onNavigationItemSelected()`, add `case N: this.showMyView(contentBox); break;`
+6. **Create show method**: Implement `private showMyView(contentBox: Gtk.Box): void` in `src/main.ts`
+7. **Update build script**: Add component to `scripts/build.js` concatenation (before `main.js` section)
+8. **Rebuild**: `npm run build && ./builddir/main.js`
 
 ### Adding App Actions
 Register in `onStartup()` method (`src/main.ts` lines 31-52):
@@ -317,7 +364,7 @@ Add to menu in `data/ui/main.ui` (lines 3-19):
 ```
 
 ### Accessing UI Elements
-Use builder IDs from `data/ui/main.ui`:
+Use builder IDs from UI files (e.g., `data/ui/main.ui`):
 ```typescript
 const mainContent = builder.get_object('main_content') as Gtk.Box;
 const splitView = builder.get_object('split_view') as Adw.NavigationSplitView;

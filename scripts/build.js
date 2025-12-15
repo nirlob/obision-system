@@ -38,11 +38,11 @@ function cleanJSContent(content) {
         .replace(/var __importDefault.*?\n/g, '')
         .replace(/this && this\.__importDefault.*?\n/g, '')
         .replace(/return \(mod && mod\.__esModule\).*?\n/g, '')
-        
+
         // Remove require statements and imports
         .replace(/const.*?require\(.*?\).*?;\s*\n?/g, '')
         .replace(/const.*?__importDefault.*?;\s*\n?/g, '')
-        
+
         // Replace TypeScript generated references
         .replace(/gtk_4_0_1\.default\./g, 'Gtk.')
         .replace(/gdk_4_0_1\.default\./g, 'Gdk.')
@@ -50,7 +50,7 @@ function cleanJSContent(content) {
         .replace(/glib_2_0_1\.default\./g, 'GLib.')
         .replace(/pango_1_0_1\.default\./g, 'Pango.')
         .replace(/adw_1_1\.default\./g, 'Adw.')
-        
+
         // Replace service references
         .replace(/utils_service_1\.UtilsService/g, 'UtilsService')
         .replace(/settings_service_1\.SettingsService/g, 'SettingsService')
@@ -59,7 +59,7 @@ function cleanJSContent(content) {
         .replace(/network_service_1\.NetworkService/g, 'NetworkService')
         .replace(/processes_service_1\.ProcessesService/g, 'ProcessesService')
         .replace(/logs_service_1\.LogsService/g, 'LogsService')
-        
+
         // Remove other artifacts
         .replace(/\s*void 0;\s*\n?/g, '')
         .replace(/^\s*\n/gm, '') // Remove empty lines
@@ -230,7 +230,7 @@ if (fs.existsSync(installDialogFile)) {
     if (classStartIndex !== -1) {
         installDialogContent = installDialogContent.substring(classStartIndex);
     }
-    
+
     // Clean up TypeScript/CommonJS artifacts using our function
     installDialogContent = cleanJSContent(installDialogContent)
         .replace(/data_service_1\./g, '')
@@ -250,7 +250,7 @@ if (fs.existsSync(applicationInfoDialogFile)) {
     if (classStartIndex !== -1) {
         applicationInfoDialogContent = applicationInfoDialogContent.substring(classStartIndex);
     }
-    
+
     // Clean up TypeScript/CommonJS artifacts using our function
     applicationInfoDialogContent = cleanJSContent(applicationInfoDialogContent)
         .replace(/utils_service_1\./g, ''); // Additional cleanup for this component
@@ -370,6 +370,25 @@ if (fs.existsSync(systemInfoComponentFile)) {
     combinedContent += systemInfoContent + '\n';
 }
 
+// Add Battery component
+const batteryComponentFile = path.join(BUILD_DIR, 'components', 'battery.js');
+if (fs.existsSync(batteryComponentFile)) {
+    console.log('📋 Adding BatteryComponent...');
+    let batteryContent = fs.readFileSync(batteryComponentFile, 'utf8');
+
+    const classStartIndex = batteryContent.indexOf('class BatteryComponent {');
+    if (classStartIndex !== -1) {
+        batteryContent = batteryContent.substring(classStartIndex);
+    }
+
+    batteryContent = cleanJSContent(batteryContent)
+        .replace(/utils_service_1\./g, '')
+        .replace(/data_service_1\./g, '')
+        .replace(/gtk_4_0_1\./g, 'Gtk.')
+        .replace(/glib_2_0_1\./g, 'GLib.');
+    combinedContent += batteryContent + '\n';
+}
+
 // Add Resources component
 const resourcesComponentFile = path.join(BUILD_DIR, 'components', 'resources.js');
 if (fs.existsSync(resourcesComponentFile)) {
@@ -478,13 +497,13 @@ const mainJsFile = path.join(BUILD_DIR, 'main.js');
 if (fs.existsSync(mainJsFile)) {
     console.log('📋 Adding main application...');
     let mainContent = fs.readFileSync(mainJsFile, 'utf8');
-    
+
     // Clean up the content - find the class definition start
     const classStartIndex = mainContent.indexOf('class ObisionStatusApplication {');
     if (classStartIndex !== -1) {
         mainContent = mainContent.substring(classStartIndex);
     }
-    
+
     // Clean up TypeScript/CommonJS artifacts using our function
     mainContent = cleanJSContent(mainContent)
         .replace(/resume_1\./g, '')
@@ -494,6 +513,7 @@ if (fs.existsSync(mainJsFile)) {
         .replace(/disk_1\./g, '')
         .replace(/network_1\./g, '')
         .replace(/system_info_1\./g, '')
+        .replace(/battery_1\./g, '')
         .replace(/resources_1\./g, '')
         .replace(/processes_1\./g, '')
         .replace(/services_1\./g, '')
@@ -503,7 +523,7 @@ if (fs.existsSync(mainJsFile)) {
         .replace(/applications_list_js_1\./g, '')
         .replace(/install_dialog_js_1\./g, '')
         .replace(/data_service_js_1\./g, '');
-    
+
     combinedContent += mainContent + '\n';
 }
 

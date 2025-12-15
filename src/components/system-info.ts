@@ -1,13 +1,17 @@
 import Gtk from '@girs/gtk-4.0';
 import Adw from '@girs/adw-1';
+import Gio from '@girs/gio-2.0';
 import { UtilsService } from '../services/utils-service';
+import { DataService } from '../services/data-service';
 
 export class SystemInfoComponent {
   private container: Gtk.Box;
   private scrolledWindow!: Gtk.ScrolledWindow;
   private utils: UtilsService;
+  private dataService: DataService;
   private authenticateButton!: Gtk.Button;
   private expandCollapseButton!: Gtk.Button;
+  private exportButton!: Gtk.Button;
   private allExpanded: boolean = true;
   private isAuthenticated: boolean = false;
   
@@ -19,6 +23,7 @@ export class SystemInfoComponent {
 
   constructor() {
     this.utils = UtilsService.instance;
+    this.dataService = DataService.instance;
     const builder = Gtk.Builder.new();
     
     // Load UI file with fallback
@@ -41,6 +46,7 @@ export class SystemInfoComponent {
     this.scrolledWindow = builder.get_object('system_info_scrolled') as Gtk.ScrolledWindow;
     this.authenticateButton = builder.get_object('authenticate_button') as Gtk.Button;
     this.expandCollapseButton = builder.get_object('expand_collapse_button') as Gtk.Button;
+    this.exportButton = builder.get_object('export_button') as Gtk.Button;
     
     // Setup button handlers
     this.setupButtons();
@@ -72,6 +78,11 @@ export class SystemInfoComponent {
       // Update icon
       const iconName = this.allExpanded ? 'view-sort-descending-symbolic' : 'view-sort-ascending-symbolic';
       this.expandCollapseButton.set_icon_name(iconName);
+    });
+    
+    // Export button
+    this.exportButton.connect('clicked', () => {
+      this.exportToJSON();
     });
   }
   
@@ -238,16 +249,135 @@ export class SystemInfoComponent {
             category = 'system';
             break;
           case 'Display':
-            title = 'Display';
-            result.forEach((display: {name: string, output: any}, index: number) => {
-              subtitle += `${display.name} - ${display.output.refreshRate ? `${display.output.width}x${display.output.height}@${display.output.refreshRate} Hz` : `${display.output.width}x${display.output.height}`}`;
-              if (index < result.length - 1) {
-                subtitle += '\n';
+            // Create PreferencesGroup for Display details
+            const displayGroup = new Adw.PreferencesGroup();
+            (displayGroup as any).set_margin_start(40);
+            (displayGroup as any).set_margin_end(12);
+            (displayGroup as any).set_margin_top(6);
+            (displayGroup as any).set_margin_bottom(6);
+            
+            if (!result || result.length === 0) {
+              // No Display detected
+              const noDisplayRow = new Adw.ActionRow({
+                title: 'Display',
+                subtitle: 'No display detected',
+              });
+              (noDisplayRow as any).set_margin_start(40);
+              this.hardwareExpander.add_row(noDisplayRow);
+              continue;
+            }
+            
+            if (result.length === 1) {
+              // Single Display - simple expander
+              const display = result[0];
+              const resolution = display.output.refreshRate 
+                ? `${display.output.width}x${display.output.height}@${display.output.refreshRate} Hz` 
+                : `${display.output.width}x${display.output.height}`;
+              
+              const displayExpander = new Adw.ExpanderRow({
+                title: 'Display',
+                subtitle: `${display.name} - ${resolution}`,
+                icon_name: 'video-display-symbolic',
+                show_enable_switch: false,
+              });
+              
+              // Add Display information rows
+              const nameRow = new Adw.ActionRow({
+                title: 'Name',
+                subtitle: display.name,
+              });
+              displayExpander.add_row(nameRow);
+              
+              const resolutionRow = new Adw.ActionRow({
+                title: 'Resolution',
+                subtitle: `${display.output.width}x${display.output.height}`,
+              });
+              displayExpander.add_row(resolutionRow);
+              
+              if (display.output.refreshRate) {
+                const refreshRow = new Adw.ActionRow({
+                  title: 'Refresh Rate',
+                  subtitle: `${display.output.refreshRate} Hz`,
+                });
+                displayExpander.add_row(refreshRow);
               }
+              
+              if (display.type) {
+                const typeRow = new Adw.ActionRow({
+                  title: 'Type',
+                  subtitle: display.type,
+                });
+                displayExpander.add_row(typeRow);
+              }
+              
+              displayGroup.add(displayExpander);
+            } else {
+              // Multiple Displays - main expander with sub-expanders
+              const mainDisplayExpander = new Adw.ExpanderRow({
+                title: 'Displays',
+                subtitle: `${result.length} display${result.length !== 1 ? 's' : ''} detected`,
+                icon_name: 'video-display-symbolic',
+                show_enable_switch: false,
+              });
+              
+              result.forEach((display: {name: string, output: any, type?: string}, index: number) => {
+                const resolution = display.output.refreshRate 
+                  ? `${display.output.width}x${display.output.height}@${display.output.refreshRate} Hz` 
+                  : `${display.output.width}x${display.output.height}`;
+                
+                const displaySubExpander = new Adw.ExpanderRow({
+                  title: display.name,
+                  subtitle: resolution,
+                  show_enable_switch: false,
+                });
+                
+                // Add Display information rows
+                const nameRow = new Adw.ActionRow({
+                  title: 'Name',
+                  subtitle: display.name,
+                });
+                displaySubExpander.add_row(nameRow);
+                
+                const resolutionRow = new Adw.ActionRow({
+                  title: 'Resolution',
+                  subtitle: `${display.output.width}x${display.output.height}`,
+                });
+                displaySubExpander.add_row(resolutionRow);
+                
+                if (display.output.refreshRate) {
+                  const refreshRow = new Adw.ActionRow({
+                    title: 'Refresh Rate',
+                    subtitle: `${display.output.refreshRate} Hz`,
+                  });
+                  displaySubExpander.add_row(refreshRow);
+                }
+                
+                if (display.type) {
+                  const typeRow = new Adw.ActionRow({
+                    title: 'Type',
+                    subtitle: display.type,
+                  });
+                  displaySubExpander.add_row(typeRow);
+                }
+                
+                mainDisplayExpander.add_row(displaySubExpander);
+              });
+              
+              displayGroup.add(mainDisplayExpander);
+            }
+            
+            const displayWrapper = new Gtk.Box({
+              orientation: Gtk.Orientation.VERTICAL,
             });
-            icon = 'video-display-symbolic';
-            category = 'hardware';
-          break;
+            displayWrapper.append(displayGroup);
+            
+            const displayGroupRow = new Gtk.ListBoxRow();
+            displayGroupRow.set_child(displayWrapper);
+            (displayGroupRow as any).set_activatable(false);
+            (displayGroupRow as any).set_selectable(false);
+            
+            this.hardwareExpander.add_row(displayGroupRow);
+            continue;
           case 'DE':
             title = 'Desktop Environment';
             subtitle = result.version ? `${result.prettyName} ${result.version}` : result.prettyName || result.name;
@@ -289,70 +419,650 @@ export class SystemInfoComponent {
             }
             break;
           case 'CPU':
-            title = 'CPU';
-            subtitle = `${result.cpu} - ${result.cores.physical} physical cores / ${result.cores.logical} logical cores`;
-            icon = 'drive-harddisk-solidstate-symbolic';
-            category = 'hardware';
-            break;
-          case 'GPU':
-            title = 'GPU';
-            if (Array.isArray(result)) {
-              result.forEach((gpu: {name: string, vendor: string}, index: number) => {
-                subtitle += `${gpu.vendor} ${gpu.name}`;
-                if (index < result.length - 1) {
-                  subtitle += '\n';
-                }
+            // Create PreferencesGroup for CPU details
+            const cpuGroup = new Adw.PreferencesGroup();
+            (cpuGroup as any).set_margin_start(40);
+            (cpuGroup as any).set_margin_end(12);
+            (cpuGroup as any).set_margin_top(6);
+            (cpuGroup as any).set_margin_bottom(6);
+            
+            const cpuInfo = this.dataService.getCpuInfo();
+            const cpuExpander = new Adw.ExpanderRow({
+              title: 'CPU',
+              subtitle: `${cpuInfo.model}`,
+              icon_name: 'drive-harddisk-solidstate-symbolic',
+              show_enable_switch: false,
+            });
+            
+            // Add CPU information rows
+            if (cpuInfo.model && cpuInfo.model !== 'Unknown') {
+              const modelRow = new Adw.ActionRow({
+                title: 'Model',
+                subtitle: cpuInfo.model,
               });
-            } else if (result.name) {
-              subtitle = `${result.vendor || ''} ${result.name}`.trim();
+              cpuExpander.add_row(modelRow);
             }
-            icon = 'video-display-symbolic';
-            category = 'hardware';
-            break;
+            
+            if (cpuInfo.vendor && cpuInfo.vendor !== 'Unknown') {
+              const vendorRow = new Adw.ActionRow({
+                title: 'Vendor',
+                subtitle: cpuInfo.vendor,
+              });
+              cpuExpander.add_row(vendorRow);
+            }
+            
+            if (cpuInfo.architecture && cpuInfo.architecture !== 'Unknown') {
+              const archRow = new Adw.ActionRow({
+                title: 'Architecture',
+                subtitle: cpuInfo.architecture,
+              });
+              cpuExpander.add_row(archRow);
+            }
+            
+            if (cpuInfo.cores > 0) {
+              const coresRow = new Adw.ActionRow({
+                title: 'Physical Cores',
+                subtitle: cpuInfo.cores.toString(),
+              });
+              cpuExpander.add_row(coresRow);
+            }
+            
+            if (cpuInfo.logicalCores > 0) {
+              const logicalCoresRow = new Adw.ActionRow({
+                title: 'Logical Cores',
+                subtitle: cpuInfo.logicalCores.toString(),
+              });
+              cpuExpander.add_row(logicalCoresRow);
+            }
+            
+            if (cpuInfo.threads > 0) {
+              const threadsRow = new Adw.ActionRow({
+                title: 'Threads per Core',
+                subtitle: cpuInfo.threads.toString(),
+              });
+              cpuExpander.add_row(threadsRow);
+            }
+            
+            if (cpuInfo.currentFrequency && cpuInfo.currentFrequency !== 'Unknown') {
+              const freqRow = new Adw.ActionRow({
+                title: 'Current Frequency',
+                subtitle: cpuInfo.currentFrequency,
+              });
+              cpuExpander.add_row(freqRow);
+            }
+            
+            if (cpuInfo.maxFrequency && cpuInfo.maxFrequency !== 'Unknown') {
+              const maxFreqRow = new Adw.ActionRow({
+                title: 'Max Frequency',
+                subtitle: cpuInfo.maxFrequency,
+              });
+              cpuExpander.add_row(maxFreqRow);
+            }
+            
+            if (cpuInfo.family && cpuInfo.family !== 'Unknown') {
+              const familyRow = new Adw.ActionRow({
+                title: 'Family',
+                subtitle: cpuInfo.family,
+              });
+              cpuExpander.add_row(familyRow);
+            }
+            
+            if (cpuInfo.modelId && cpuInfo.modelId !== 'Unknown') {
+              const modelIdRow = new Adw.ActionRow({
+                title: 'Model ID',
+                subtitle: cpuInfo.modelId,
+              });
+              cpuExpander.add_row(modelIdRow);
+            }
+            
+            if (cpuInfo.stepping && cpuInfo.stepping !== 'Unknown') {
+              const steppingRow = new Adw.ActionRow({
+                title: 'Stepping',
+                subtitle: cpuInfo.stepping,
+              });
+              cpuExpander.add_row(steppingRow);
+            }
+            
+            // Cache information
+            if (cpuInfo.l1dCache && cpuInfo.l1dCache !== 'Unknown') {
+              const l1dRow = new Adw.ActionRow({
+                title: 'L1d Cache',
+                subtitle: cpuInfo.l1dCache,
+              });
+              cpuExpander.add_row(l1dRow);
+            }
+            
+            if (cpuInfo.l1iCache && cpuInfo.l1iCache !== 'Unknown') {
+              const l1iRow = new Adw.ActionRow({
+                title: 'L1i Cache',
+                subtitle: cpuInfo.l1iCache,
+              });
+              cpuExpander.add_row(l1iRow);
+            }
+            
+            if (cpuInfo.l2Cache && cpuInfo.l2Cache !== 'Unknown') {
+              const l2Row = new Adw.ActionRow({
+                title: 'L2 Cache',
+                subtitle: cpuInfo.l2Cache,
+              });
+              cpuExpander.add_row(l2Row);
+            }
+            
+            if (cpuInfo.l3Cache && cpuInfo.l3Cache !== 'Unknown') {
+              const l3Row = new Adw.ActionRow({
+                title: 'L3 Cache',
+                subtitle: cpuInfo.l3Cache,
+              });
+              cpuExpander.add_row(l3Row);
+            }
+            
+            if (cpuInfo.virtualization && cpuInfo.virtualization !== 'Unknown') {
+              const virtRow = new Adw.ActionRow({
+                title: 'Virtualization',
+                subtitle: cpuInfo.virtualization,
+              });
+              cpuExpander.add_row(virtRow);
+            }
+            
+            if (cpuInfo.bogomips && cpuInfo.bogomips !== 'Unknown') {
+              const bogomipsRow = new Adw.ActionRow({
+                title: 'BogoMIPS',
+                subtitle: cpuInfo.bogomips,
+              });
+              cpuExpander.add_row(bogomipsRow);
+            }
+            
+            cpuGroup.add(cpuExpander);
+            
+            // Wrap in a box and listboxrow to add to hardware expander
+            const cpuWrapper = new Gtk.Box({
+              orientation: Gtk.Orientation.VERTICAL,
+            });
+            cpuWrapper.append(cpuGroup);
+            
+            const cpuGroupRow = new Gtk.ListBoxRow();
+            cpuGroupRow.set_child(cpuWrapper);
+            (cpuGroupRow as any).set_activatable(false);
+            (cpuGroupRow as any).set_selectable(false);
+            
+            this.hardwareExpander.add_row(cpuGroupRow);
+            continue;
+          case 'GPU':
+            // Create PreferencesGroup for GPU details
+            const gpuGroup = new Adw.PreferencesGroup();
+            (gpuGroup as any).set_margin_start(40);
+            (gpuGroup as any).set_margin_end(12);
+            (gpuGroup as any).set_margin_top(6);
+            (gpuGroup as any).set_margin_bottom(6);
+            
+            const gpuInfoList = this.dataService.getGpuInfo();
+            
+            if (gpuInfoList.length === 0) {
+              // No GPU detected
+              const noGpuRow = new Adw.ActionRow({
+                title: 'GPU',
+                subtitle: 'No GPU detected',
+              });
+              (noGpuRow as any).set_margin_start(40);
+              this.hardwareExpander.add_row(noGpuRow);
+              continue;
+            }
+            
+            if (gpuInfoList.length === 1) {
+              // Single GPU - simple expander
+              const gpuInfo = gpuInfoList[0];
+              const gpuExpander = new Adw.ExpanderRow({
+                title: 'GPU',
+                subtitle: gpuInfo.name,
+                icon_name: 'video-display-symbolic',
+                show_enable_switch: false,
+              });
+              
+              // Add GPU information rows
+              if (gpuInfo.name) {
+                const nameRow = new Adw.ActionRow({
+                  title: 'Name',
+                  subtitle: gpuInfo.name,
+                });
+                gpuExpander.add_row(nameRow);
+              }
+              
+              if (gpuInfo.vendor && gpuInfo.vendor !== 'Unknown') {
+                const vendorRow = new Adw.ActionRow({
+                  title: 'Vendor',
+                  subtitle: gpuInfo.vendor,
+                });
+                gpuExpander.add_row(vendorRow);
+              }
+              
+              if (gpuInfo.driver && gpuInfo.driver !== 'Unknown') {
+                const driverRow = new Adw.ActionRow({
+                  title: 'Driver',
+                  subtitle: gpuInfo.driver,
+                });
+                gpuExpander.add_row(driverRow);
+              }
+              
+              if (gpuInfo.memoryTotal && gpuInfo.memoryTotal !== 'N/A') {
+                const memTotalRow = new Adw.ActionRow({
+                  title: 'Memory Total',
+                  subtitle: gpuInfo.memoryTotal,
+                });
+                gpuExpander.add_row(memTotalRow);
+              }
+              
+              if (gpuInfo.memoryUsed && gpuInfo.memoryUsed !== 'N/A') {
+                const memUsedRow = new Adw.ActionRow({
+                  title: 'Memory Used',
+                  subtitle: gpuInfo.memoryUsed,
+                });
+                gpuExpander.add_row(memUsedRow);
+              }
+              
+              if (gpuInfo.clockSpeed && gpuInfo.clockSpeed !== 'N/A') {
+                const clockRow = new Adw.ActionRow({
+                  title: 'Clock Speed',
+                  subtitle: gpuInfo.clockSpeed,
+                });
+                gpuExpander.add_row(clockRow);
+              }
+              
+              if (gpuInfo.temperature && gpuInfo.temperature !== 'N/A') {
+                const tempRow = new Adw.ActionRow({
+                  title: 'Temperature',
+                  subtitle: gpuInfo.temperature,
+                });
+                gpuExpander.add_row(tempRow);
+              }
+              
+              if (gpuInfo.power && gpuInfo.power !== 'N/A') {
+                const powerRow = new Adw.ActionRow({
+                  title: 'Power Draw',
+                  subtitle: gpuInfo.power,
+                });
+                gpuExpander.add_row(powerRow);
+              }
+              
+              if (gpuInfo.pciId && gpuInfo.pciId !== 'N/A') {
+                const pciRow = new Adw.ActionRow({
+                  title: 'PCI ID',
+                  subtitle: gpuInfo.pciId,
+                });
+                gpuExpander.add_row(pciRow);
+              }
+              
+              gpuGroup.add(gpuExpander);
+            } else {
+              // Multiple GPUs - main expander with sub-expanders
+              const mainGpuExpander = new Adw.ExpanderRow({
+                title: 'GPUs',
+                subtitle: `${gpuInfoList.length} graphics card${gpuInfoList.length !== 1 ? 's' : ''} detected`,
+                icon_name: 'video-display-symbolic',
+                show_enable_switch: false,
+              });
+              
+              gpuInfoList.forEach((gpuInfo, index) => {
+                const gpuSubExpander = new Adw.ExpanderRow({
+                  title: `GPU ${index + 1}`,
+                  subtitle: gpuInfo.name,
+                  show_enable_switch: false,
+                });
+                
+                // Add GPU information rows
+                if (gpuInfo.name) {
+                  const nameRow = new Adw.ActionRow({
+                    title: 'Name',
+                    subtitle: gpuInfo.name,
+                  });
+                  gpuSubExpander.add_row(nameRow);
+                }
+                
+                if (gpuInfo.vendor && gpuInfo.vendor !== 'Unknown') {
+                  const vendorRow = new Adw.ActionRow({
+                    title: 'Vendor',
+                    subtitle: gpuInfo.vendor,
+                  });
+                  gpuSubExpander.add_row(vendorRow);
+                }
+                
+                if (gpuInfo.driver && gpuInfo.driver !== 'Unknown') {
+                  const driverRow = new Adw.ActionRow({
+                    title: 'Driver',
+                    subtitle: gpuInfo.driver,
+                  });
+                  gpuSubExpander.add_row(driverRow);
+                }
+                
+                if (gpuInfo.memoryTotal && gpuInfo.memoryTotal !== 'N/A') {
+                  const memTotalRow = new Adw.ActionRow({
+                    title: 'Memory Total',
+                    subtitle: gpuInfo.memoryTotal,
+                  });
+                  gpuSubExpander.add_row(memTotalRow);
+                }
+                
+                if (gpuInfo.memoryUsed && gpuInfo.memoryUsed !== 'N/A') {
+                  const memUsedRow = new Adw.ActionRow({
+                    title: 'Memory Used',
+                    subtitle: gpuInfo.memoryUsed,
+                  });
+                  gpuSubExpander.add_row(memUsedRow);
+                }
+                
+                if (gpuInfo.clockSpeed && gpuInfo.clockSpeed !== 'N/A') {
+                  const clockRow = new Adw.ActionRow({
+                    title: 'Clock Speed',
+                    subtitle: gpuInfo.clockSpeed,
+                  });
+                  gpuSubExpander.add_row(clockRow);
+                }
+                
+                if (gpuInfo.temperature && gpuInfo.temperature !== 'N/A') {
+                  const tempRow = new Adw.ActionRow({
+                    title: 'Temperature',
+                    subtitle: gpuInfo.temperature,
+                  });
+                  gpuSubExpander.add_row(tempRow);
+                }
+                
+                if (gpuInfo.power && gpuInfo.power !== 'N/A') {
+                  const powerRow = new Adw.ActionRow({
+                    title: 'Power Draw',
+                    subtitle: gpuInfo.power,
+                  });
+                  gpuSubExpander.add_row(powerRow);
+                }
+                
+                if (gpuInfo.pciId && gpuInfo.pciId !== 'N/A') {
+                  const pciRow = new Adw.ActionRow({
+                    title: 'PCI ID',
+                    subtitle: gpuInfo.pciId,
+                  });
+                  gpuSubExpander.add_row(pciRow);
+                }
+                
+                mainGpuExpander.add_row(gpuSubExpander);
+              });
+              
+              gpuGroup.add(mainGpuExpander);
+            }
+            
+            // Wrap in a box and listboxrow to add to hardware expander
+            const gpuWrapper = new Gtk.Box({
+              orientation: Gtk.Orientation.VERTICAL,
+            });
+            gpuWrapper.append(gpuGroup);
+            
+            const gpuGroupRow = new Gtk.ListBoxRow();
+            gpuGroupRow.set_child(gpuWrapper);
+            (gpuGroupRow as any).set_activatable(false);
+            (gpuGroupRow as any).set_selectable(false);
+            
+            this.hardwareExpander.add_row(gpuGroupRow);
+            continue;
           case 'Memory':
-            title = 'Memory';
-            const memPct = result.total !== undefined ? `(${(result.used * 100 / result.total).toFixed(1)}%)` : '';
-            subtitle = `${this.utils.formatBytes(result.used || 0)} / ${this.utils.formatBytes(result.total || 0)} ${memPct}`;
-            icon = 'auth-sim-symbolic';
-            category = 'hardware';
-            break;
+            // Create PreferencesGroup for memory details
+            const memoryGroup = new Adw.PreferencesGroup();
+            (memoryGroup as any).set_margin_start(40);
+            (memoryGroup as any).set_margin_end(12);
+            (memoryGroup as any).set_margin_top(6);
+            (memoryGroup as any).set_margin_bottom(6);
+            
+            const memPct = result.total !== undefined ? `${(result.used * 100 / result.total).toFixed(1)}%` : '';
+            const memoryExpander = new Adw.ExpanderRow({
+              title: 'Memory',
+              subtitle: `${this.utils.formatBytes(result.used || 0)} / ${this.utils.formatBytes(result.total || 0)} (${memPct})`,
+              icon_name: 'auth-sim-symbolic',
+              show_enable_switch: false,
+            });
+            
+            // Get detailed memory information from DataService
+            try {
+              const memInfo = this.dataService.getMemoryInfo();
+              
+              // Add basic information
+              if (memInfo.total > 0) {
+                const totalRow = new Adw.ActionRow({
+                  title: 'Total',
+                  subtitle: this.utils.formatBytes(memInfo.total * 1024),
+                });
+                memoryExpander.add_row(totalRow);
+              }
+              
+              if (memInfo.used > 0) {
+                const usedRow = new Adw.ActionRow({
+                  title: 'Used',
+                  subtitle: this.utils.formatBytes(memInfo.used * 1024),
+                });
+                memoryExpander.add_row(usedRow);
+              }
+              
+              if (memInfo.free > 0) {
+                const freeRow = new Adw.ActionRow({
+                  title: 'Free',
+                  subtitle: this.utils.formatBytes(memInfo.free * 1024),
+                });
+                memoryExpander.add_row(freeRow);
+              }
+              
+              if (memInfo.available > 0) {
+                const availableRow = new Adw.ActionRow({
+                  title: 'Available',
+                  subtitle: this.utils.formatBytes(memInfo.available * 1024),
+                });
+                memoryExpander.add_row(availableRow);
+              }
+              
+              if (memInfo.buffers > 0) {
+                const buffersRow = new Adw.ActionRow({
+                  title: 'Buffers',
+                  subtitle: this.utils.formatBytes(memInfo.buffers * 1024),
+                });
+                memoryExpander.add_row(buffersRow);
+              }
+              
+              if (memInfo.cached > 0) {
+                const cachedRow = new Adw.ActionRow({
+                  title: 'Cached',
+                  subtitle: this.utils.formatBytes(memInfo.cached * 1024),
+                });
+                memoryExpander.add_row(cachedRow);
+              }
+              
+              if (memInfo.shared > 0) {
+                const sharedRow = new Adw.ActionRow({
+                  title: 'Shared',
+                  subtitle: this.utils.formatBytes(memInfo.shared * 1024),
+                });
+                memoryExpander.add_row(sharedRow);
+              }
+              
+              if (memInfo.slab > 0) {
+                const slabRow = new Adw.ActionRow({
+                  title: 'Slab',
+                  subtitle: this.utils.formatBytes(memInfo.slab * 1024),
+                });
+                memoryExpander.add_row(slabRow);
+              }
+              
+              if (memInfo.active > 0) {
+                const activeRow = new Adw.ActionRow({
+                  title: 'Active',
+                  subtitle: this.utils.formatBytes(memInfo.active * 1024),
+                });
+                memoryExpander.add_row(activeRow);
+              }
+              
+              if (memInfo.inactive > 0) {
+                const inactiveRow = new Adw.ActionRow({
+                  title: 'Inactive',
+                  subtitle: this.utils.formatBytes(memInfo.inactive * 1024),
+                });
+                memoryExpander.add_row(inactiveRow);
+              }
+              
+              if (memInfo.dirty > 0) {
+                const dirtyRow = new Adw.ActionRow({
+                  title: 'Dirty',
+                  subtitle: this.utils.formatBytes(memInfo.dirty * 1024),
+                });
+                memoryExpander.add_row(dirtyRow);
+              }
+              
+              if (memInfo.writeback > 0) {
+                const writebackRow = new Adw.ActionRow({
+                  title: 'Writeback',
+                  subtitle: this.utils.formatBytes(memInfo.writeback * 1024),
+                });
+                memoryExpander.add_row(writebackRow);
+              }
+              
+              if (memInfo.mapped > 0) {
+                const mappedRow = new Adw.ActionRow({
+                  title: 'Mapped',
+                  subtitle: this.utils.formatBytes(memInfo.mapped * 1024),
+                });
+                memoryExpander.add_row(mappedRow);
+              }
+              
+              if (memInfo.pageTables > 0) {
+                const pageTablesRow = new Adw.ActionRow({
+                  title: 'Page Tables',
+                  subtitle: this.utils.formatBytes(memInfo.pageTables * 1024),
+                });
+                memoryExpander.add_row(pageTablesRow);
+              }
+              
+              if (memInfo.kernelStack > 0) {
+                const kernelStackRow = new Adw.ActionRow({
+                  title: 'Kernel Stack',
+                  subtitle: this.utils.formatBytes(memInfo.kernelStack * 1024),
+                });
+                memoryExpander.add_row(kernelStackRow);
+              }
+              
+              // Add swap information
+              if (memInfo.swapTotal > 0) {
+                const swapTotalRow = new Adw.ActionRow({
+                  title: 'Swap Total',
+                  subtitle: this.utils.formatBytes(memInfo.swapTotal * 1024),
+                });
+                memoryExpander.add_row(swapTotalRow);
+                
+                const swapUsedRow = new Adw.ActionRow({
+                  title: 'Swap Used',
+                  subtitle: this.utils.formatBytes(memInfo.swapUsed * 1024),
+                });
+                memoryExpander.add_row(swapUsedRow);
+                
+                if (memInfo.swapCached > 0) {
+                  const swapCachedRow = new Adw.ActionRow({
+                    title: 'Swap Cached',
+                    subtitle: this.utils.formatBytes(memInfo.swapCached * 1024),
+                  });
+                  memoryExpander.add_row(swapCachedRow);
+                }
+              }
+            } catch (error) {
+              console.error('Error reading /proc/meminfo:', error);
+              
+              // Fallback to fastfetch data if /proc/meminfo fails
+              if (result.used !== undefined) {
+                const usedRow = new Adw.ActionRow({
+                  title: 'Used',
+                  subtitle: this.utils.formatBytes(result.used),
+                });
+                memoryExpander.add_row(usedRow);
+              }
+              
+              if (result.total !== undefined && result.used !== undefined) {
+                const freeRow = new Adw.ActionRow({
+                  title: 'Available',
+                  subtitle: this.utils.formatBytes(result.total - result.used),
+                });
+                memoryExpander.add_row(freeRow);
+              }
+              
+              if (result.total !== undefined) {
+                const totalRow = new Adw.ActionRow({
+                  title: 'Total',
+                  subtitle: this.utils.formatBytes(result.total),
+                });
+                memoryExpander.add_row(totalRow);
+              }
+            }
+            
+            memoryGroup.add(memoryExpander);
+            
+            // Wrap in a box and listboxrow to add to hardware expander
+            const memoryWrapper = new Gtk.Box({
+              orientation: Gtk.Orientation.VERTICAL,
+            });
+            memoryWrapper.append(memoryGroup);
+            
+            const memoryGroupRow = new Gtk.ListBoxRow();
+            memoryGroupRow.set_child(memoryWrapper);
+            (memoryGroupRow as any).set_activatable(false);
+            (memoryGroupRow as any).set_selectable(false);
+            
+            this.hardwareExpander.add_row(memoryGroupRow);
+            continue;
           case 'Swap':
             // Store swap data to add to mount points later
             (this as any).swapData = result;
             continue;
           case 'Disk':
-            // Create PreferencesGroup for mount points
-            const mountGroup = new Adw.PreferencesGroup();
-            (mountGroup as any).set_margin_start(40);
-            (mountGroup as any).set_margin_end(12);
-            (mountGroup as any).set_margin_top(6);
-            (mountGroup as any).set_margin_bottom(6);
+            // Create PreferencesGroup for disks
+            const disksGroup = new Adw.PreferencesGroup();
+            (disksGroup as any).set_margin_start(40);
+            (disksGroup as any).set_margin_end(12);
+            (disksGroup as any).set_margin_top(6);
+            (disksGroup as any).set_margin_bottom(6);
             
-            const mountExpander = new Adw.ExpanderRow({
-              title: 'Mount points',
-              subtitle: `${result.length} mount point${result.length !== 1 ? 's' : ''}`,
+            // Calculate total disk space
+            let totalDiskSpace = 0;
+            let totalDiskUsed = 0;
+            result.forEach((mount: { bytes: any; }) => {
+              if (mount.bytes && mount.bytes.total) {
+                totalDiskSpace += mount.bytes.total;
+                totalDiskUsed += mount.bytes.used || 0;
+              }
+            });
+            
+            const diskPct = totalDiskSpace > 0 ? `${(totalDiskUsed * 100 / totalDiskSpace).toFixed(1)}%` : '';
+            const disksExpander = new Adw.ExpanderRow({
+              title: 'Disks',
+              subtitle: `${this.utils.formatBytes(totalDiskUsed)} / ${this.utils.formatBytes(totalDiskSpace)} (${diskPct})`,
               icon_name: 'drive-harddisk-symbolic',
               show_enable_switch: false,
             });
             
+            // Check if swap exists
+            const swapData = (this as any).swapData;
+            const hasSwap = swapData && swapData.total > 0;
+            const mountCount = result.length + (hasSwap ? 1 : 0);
+            
+            // Create nested mount points expander
+            const mountExpander = new Adw.ExpanderRow({
+              title: 'Mount points',
+              subtitle: `${mountCount} mount point${mountCount !== 1 ? 's' : ''}`,
+              icon_name: 'folder-symbolic',
+              show_enable_switch: false,
+            });
+            
             result.forEach((mount: { mountpoint: any; bytes: any; }) => {
+              const mountPct = mount.bytes.total > 0 ? `(${(mount.bytes.used * 100 / mount.bytes.total).toFixed(1)}%)` : '';
               const mountRow = new Adw.ActionRow({
                 title: mount.mountpoint,
-                subtitle: `${this.utils.formatBytes(mount.bytes.used || 0)} / ${this.utils.formatBytes(mount.bytes.total || 0)}`,
+                subtitle: `${this.utils.formatBytes(mount.bytes.used || 0)} / ${this.utils.formatBytes(mount.bytes.total || 0)} ${mountPct}`,
               });
               mountExpander.add_row(mountRow);
             });
             
-            // Add swap if available
-            const swapData = (this as any).swapData;
-            if (swapData) {
-              let swapSubtitle = '';
-              if (swapData.total > 0) {
-                const swapPct = `(${(swapData.used * 100 / swapData.total).toFixed(1)}%)`;
-                swapSubtitle = `${this.utils.formatBytes(swapData.used || 0)} / ${this.utils.formatBytes(swapData.total || 0)} ${swapPct}`;
-              } else {
-                swapSubtitle = 'Not configured';
-              }
+            // Add swap if available and total > 0 (inside mount points)
+            if (hasSwap) {
+              const swapPct = `(${(swapData.used * 100 / swapData.total).toFixed(1)}%)`;
+              const swapSubtitle = `${this.utils.formatBytes(swapData.used || 0)} / ${this.utils.formatBytes(swapData.total || 0)} ${swapPct}`;
               const swapRow = new Adw.ActionRow({
                 title: 'Swap',
                 subtitle: swapSubtitle,
@@ -360,20 +1070,148 @@ export class SystemInfoComponent {
               mountExpander.add_row(swapRow);
             }
             
-            mountGroup.add(mountExpander);
+            // Add mount points expander to disks expander
+            disksExpander.add_row(mountExpander);
+            
+            // Create physical drives expander
+            const physicalDrivesExpander = new Adw.ExpanderRow({
+              title: 'Physical drives',
+              subtitle: 'Hardware disk information',
+              icon_name: 'drive-harddisk-symbolic',
+              show_enable_switch: false,
+            });
+            
+            // Get list of physical drives
+            try {
+              const [lsblkOut] = this.utils.executeCommand('lsblk', ['-d', '-o', 'NAME,MODEL,SIZE,ROTA,TYPE', '-n']);
+              const lines = lsblkOut.trim().split('\n');
+              let driveCount = 0;
+              
+              for (const line of lines) {
+                const parts = line.trim().split(/\s+/);
+                if (parts.length >= 4) {
+                  const device = parts[0];
+                  const type = parts[parts.length - 1];
+                  
+                  // Only show disk type (not partitions)
+                  if (type === 'disk') {
+                    driveCount++;
+                    const model = parts.slice(1, parts.length - 3).join(' ') || 'Unknown';
+                    const size = parts[parts.length - 3];
+                    const rota = parts[parts.length - 2];
+                    const driveType = rota === '1' ? 'HDD' : 'SSD';
+                    
+                    // Create expander for each drive
+                    const driveExpander = new Adw.ExpanderRow({
+                      title: `/dev/${device}`,
+                      subtitle: `${model} - ${size}`,
+                      show_enable_switch: false,
+                    });
+                    
+                    // Drive Type (HDD/SSD)
+                    const typeRow = new Adw.ActionRow({
+                      title: 'Type',
+                      subtitle: driveType,
+                    });
+                    driveExpander.add_row(typeRow);
+                    
+                    // Model
+                    const modelRow = new Adw.ActionRow({
+                      title: 'Model',
+                      subtitle: model,
+                    });
+                    driveExpander.add_row(modelRow);
+                    
+                    // Size
+                    const sizeRow = new Adw.ActionRow({
+                      title: 'Size',
+                      subtitle: size,
+                    });
+                    driveExpander.add_row(sizeRow);
+                    
+                    // Get partitions for this drive
+                    try {
+                      const [partOut] = this.utils.executeCommand('lsblk', ['-o', 'NAME,SIZE,TYPE,FSTYPE,MOUNTPOINT', '-n', `/dev/${device}`]);
+                      const partLines = partOut.trim().split('\n');
+                      
+                      if (partLines.length > 1) {
+                        const partitionsExpander = new Adw.ExpanderRow({
+                          title: 'Partitions',
+                          subtitle: `${partLines.length - 1} partition${partLines.length - 1 !== 1 ? 's' : ''}`,
+                          show_enable_switch: false,
+                        });
+                        
+                        for (let i = 1; i < partLines.length; i++) {
+                          const partLine = partLines[i].trim();
+                          const partParts = partLine.split(/\s+/);
+                          
+                          if (partParts.length >= 3 && partParts[2] === 'part') {
+                            const partName = partParts[0].replace(/[├─└─│\s]/g, '');
+                            const partSize = partParts[1];
+                            const fsType = partParts[3] || '-';
+                            const mountPoint = partParts.slice(4).join(' ') || 'Not mounted';
+                            
+                            const partRow = new Adw.ActionRow({
+                              title: `/dev/${partName}`,
+                              subtitle: `${partSize} • ${fsType} • ${mountPoint}`,
+                            });
+                            partitionsExpander.add_row(partRow);
+                          }
+                        }
+                        
+                        driveExpander.add_row(partitionsExpander);
+                      }
+                    } catch (e) {
+                      console.error(`Error getting partitions for ${device}:`, e);
+                    }
+                    
+                    // Try to get temperature if available
+                    try {
+                      const [tempOut] = this.utils.executeCommand('bash', ['-c', `cat /sys/block/${device}/device/hwmon/hwmon*/temp1_input 2>/dev/null || echo ""`]);
+                      if (tempOut && tempOut.trim()) {
+                        const temp = parseInt(tempOut.trim()) / 1000;
+                        if (!isNaN(temp)) {
+                          const tempRow = new Adw.ActionRow({
+                            title: 'Temperature',
+                            subtitle: `${temp.toFixed(1)}°C`,
+                          });
+                          driveExpander.add_row(tempRow);
+                        }
+                      }
+                    } catch {
+                      // Temperature not available
+                    }
+                    
+                    physicalDrivesExpander.add_row(driveExpander);
+                  }
+                }
+              }
+              
+              // Update subtitle with drive count
+              if (driveCount > 0) {
+                physicalDrivesExpander.set_subtitle(`${driveCount} physical drive${driveCount !== 1 ? 's' : ''} detected`);
+              }
+            } catch (error) {
+              console.error('Error loading physical drives:', error);
+            }
+            
+            // Add physical drives expander to disks expander
+            disksExpander.add_row(physicalDrivesExpander);
+            
+            disksGroup.add(disksExpander);
             
             // Wrap in a box and listboxrow to add to hardware expander
-            const mountWrapper = new Gtk.Box({
+            const disksWrapper = new Gtk.Box({
               orientation: Gtk.Orientation.VERTICAL,
             });
-            mountWrapper.append(mountGroup);
+            disksWrapper.append(disksGroup);
             
-            const mountGroupRow = new Gtk.ListBoxRow();
-            mountGroupRow.set_child(mountWrapper);
-            (mountGroupRow as any).set_activatable(false);
-            (mountGroupRow as any).set_selectable(false);
+            const disksGroupRow = new Gtk.ListBoxRow();
+            disksGroupRow.set_child(disksWrapper);
+            (disksGroupRow as any).set_activatable(false);
+            (disksGroupRow as any).set_selectable(false);
             
-            this.hardwareExpander.add_row(mountGroupRow);
+            this.hardwareExpander.add_row(disksGroupRow);
             continue;
           case 'LocalIP':
           case 'PublicIP':
@@ -381,6 +1219,10 @@ export class SystemInfoComponent {
             // Skip - network interfaces are loaded separately
             continue;
           case 'Battery':
+            // Check if battery exists using DataService
+            if (!this.dataService.hasBattery()) {
+              continue;
+            }
             // Battery data comes as an array, take the first battery  
             const batteryArray = Array.isArray(result) ? result : [result];
             if (batteryArray && batteryArray.length > 0) {
@@ -1279,6 +2121,231 @@ export class SystemInfoComponent {
     if (mins > 0) parts.push(`${mins} mins`);
     
     return parts.join(', ') || '0 mins';
+  }
+
+  private exportToJSON(): void {
+    try {
+      // Collect all system information
+      const systemData: any = {
+        exportDate: new Date().toISOString(),
+        hostname: '',
+        system: {},
+        hardware: {},
+        software: {},
+        network: {},
+        processes: []
+      };
+
+      // Get system and software info from DataService
+      try {
+        const sysInfo = this.dataService.getSystemInfo();
+        systemData.hostname = sysInfo.hostname;
+        systemData.system = {
+          os: sysInfo.os,
+          kernel: sysInfo.kernel,
+          uptime: sysInfo.uptime
+        };
+        if (sysInfo.displays && sysInfo.displays.length > 0) {
+          systemData.hardware.displays = sysInfo.displays;
+        }
+      } catch (e) {
+        console.error('Error getting system info:', e);
+      }
+
+      try {
+        const softInfo = this.dataService.getSoftwareInfo();
+        systemData.software = softInfo;
+      } catch (e) {
+        console.error('Error getting software info:', e);
+      }
+
+      // Get CPU info
+      try {
+        const cpuInfo = this.dataService.getCpuInfo();
+        systemData.hardware.cpu = cpuInfo;
+      } catch (e) {
+        console.error('Error getting CPU info:', e);
+      }
+
+      // Get GPU info
+      try {
+        const gpuInfo = this.dataService.getGpuInfo();
+        systemData.hardware.gpu = gpuInfo;
+      } catch (e) {
+        console.error('Error getting GPU info:', e);
+      }
+
+      // Get Memory info
+      try {
+        const memoryInfo = this.dataService.getMemoryInfo();
+        systemData.hardware.memory = memoryInfo;
+      } catch (e) {
+        console.error('Error getting memory info:', e);
+      }
+
+      // Get Battery info if available
+      try {
+        if (this.dataService.hasBattery()) {
+          const [stdout] = this.utils.executeCommand('fastfetch', ['--format', 'json']);
+          const fastfetchData = JSON.parse(stdout);
+          const batteryModule = fastfetchData.find((item: any) => item.type === 'Battery');
+          if (batteryModule?.result) {
+            const batteryArray = Array.isArray(batteryModule.result) ? batteryModule.result : [batteryModule.result];
+            if (batteryArray.length > 0 && batteryArray[0]) {
+              systemData.hardware.battery = batteryArray[0];
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Error getting battery info:', e);
+      }
+
+      // Get Disk info
+      try {
+        const [stdout] = this.utils.executeCommand('lsblk', ['-J', '-o', 'NAME,SIZE,TYPE,MOUNTPOINT,FSTYPE,MODEL,SERIAL,VENDOR']);
+        const diskData = JSON.parse(stdout);
+        systemData.hardware.disks = diskData;
+      } catch (e) {
+        console.error('Error getting disk info:', e);
+      }
+
+      // Get Network interfaces
+      try {
+        const [stdout] = this.utils.executeCommand('ip', ['-j', 'addr', 'show']);
+        const networkData = JSON.parse(stdout);
+        systemData.network.interfaces = networkData;
+      } catch (e) {
+        console.error('Error getting network info:', e);
+      }
+
+      // Get Network statistics
+      try {
+        const [stdout] = this.utils.executeCommand('cat', ['/proc/net/dev']);
+        const lines = stdout.split('\n').slice(2);
+        systemData.network.statistics = [];
+        for (const line of lines) {
+          if (line.trim()) {
+            const parts = line.trim().split(/\s+/);
+            if (parts.length >= 10) {
+              systemData.network.statistics.push({
+                interface: parts[0].replace(':', ''),
+                rx_bytes: parseInt(parts[1]),
+                rx_packets: parseInt(parts[2]),
+                tx_bytes: parseInt(parts[9]),
+                tx_packets: parseInt(parts[10])
+              });
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Error getting network statistics:', e);
+      }
+
+      // Get Process list
+      try {
+        const [stdout] = this.utils.executeCommand('ps', ['aux', '--sort=-pcpu']);
+        const lines = stdout.split('\n');
+        systemData.processes = lines.slice(1, 21).map((line: string) => {
+          const parts = line.trim().split(/\s+/);
+          if (parts.length >= 11) {
+            return {
+              user: parts[0],
+              pid: parts[1],
+              cpu: parts[2],
+              mem: parts[3],
+              vsz: parts[4],
+              rss: parts[5],
+              stat: parts[7],
+              start: parts[8],
+              time: parts[9],
+              command: parts.slice(10).join(' ')
+            };
+          }
+          return null;
+        }).filter((p: any) => p !== null);
+      } catch (e) {
+        console.error('Error getting process info:', e);
+      }
+
+      // Convert to JSON string
+      const jsonContent = JSON.stringify(systemData, null, 2);
+
+      // Show save file dialog
+      const fileDialog = new Gtk.FileDialog();
+      fileDialog.set_title('Export System Information');
+      fileDialog.set_initial_name('system-info.json');
+
+      // Create file filter for JSON
+      const filter = new Gtk.FileFilter();
+      filter.set_name('JSON files');
+      filter.add_mime_type('application/json');
+      filter.add_pattern('*.json');
+      
+      const filterList = new Gio.ListStore({ item_type: Gtk.FileFilter.$gtype });
+      filterList.append(filter);
+      fileDialog.set_filters(filterList);
+
+      // Show save dialog
+      fileDialog.save(
+        this.container.get_root() as Gtk.Window,
+        null,
+        (dialog: any, result: any) => {
+          try {
+            const file = fileDialog.save_finish(result);
+            if (file) {
+              // Write JSON to file
+              const [success] = file.replace_contents(
+                jsonContent,
+                null,
+                false,
+                Gio.FileCreateFlags.REPLACE_DESTINATION,
+                null
+              );
+
+              if (success) {
+                // Show success notification
+                const toast = new Adw.Toast({
+                  title: 'System information exported successfully',
+                  timeout: 3
+                });
+                // Find the AdwToastOverlay parent if available
+                let widget = this.container.get_parent();
+                while (widget && !(widget instanceof Adw.ToastOverlay)) {
+                  widget = widget.get_parent();
+                }
+                if (widget instanceof Adw.ToastOverlay) {
+                  widget.add_toast(toast);
+                }
+              }
+            }
+          } catch (e: any) {
+            // Check if user cancelled the dialog
+            if (e.matches && e.matches(Gtk.DialogError, Gtk.DialogError.DISMISSED)) {
+              // User cancelled, do nothing
+              return;
+            }
+            console.error('Error saving file:', e);
+            // Show error dialog only for real errors
+            const errorDialog = new Adw.MessageDialog({
+              heading: 'Export Failed',
+              body: 'Could not save the file. Please try again.',
+            });
+            errorDialog.add_response('ok', 'OK');
+            errorDialog.set_transient_for(this.container.get_root() as Gtk.Window);
+            errorDialog.present();
+          }
+        }
+      );
+    } catch (e) {
+      console.error('Error exporting to JSON:', e);
+      const errorDialog = new Adw.MessageDialog({
+        heading: 'Export Failed',
+        body: `An error occurred while exporting: ${e}`,
+      });
+      errorDialog.add_response('ok', 'OK');
+      errorDialog.set_transient_for(this.container.get_root() as Gtk.Window);
+      errorDialog.present();
+    }
   }
 
   public getWidget(): Gtk.Box {

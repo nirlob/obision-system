@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkBox" id="battery_container">
+    <property name="orientation">vertical</property>
+    <property name="spacing">12</property>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">12</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label" translatable="yes">Battery Level History</property>
+            <property name="halign">start</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+            </attributes>
+          </object>
+        </child>
+        <child>
+          <object class="GtkFrame">
+            <property name="hexpand">true</property>
+            <style>
+              <class name="view"/>
+            </style>
+            <child>
+              <object class="GtkDrawingArea" id="battery_chart">
+                <property name="height-request">200</property>
+                <property name="hexpand">true</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <!-- Battery Level Progress Bar Title and Bar below chart -->
+        <child>
+          <object class="GtkBox" id="battery_level_title_box">
+            <property name="orientation">horizontal</property>
+            <property name="hexpand">true</property>
+            <child>
+              <object class="GtkLabel" id="battery_level_title">
+                <property name="label">Battery Level</property>
+                <property name="halign">start</property>
+                <property name="hexpand">true</property>
+                <attributes>
+                  <attribute name="weight" value="bold"/>
+                </attributes>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="battery_level_percent">
+                <property name="label">0.0%</property>
+                <property name="halign">end</property>
+                <property name="hexpand">false</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLevelBar" id="battery_level_bar">
+            <property name="hexpand">true</property>
+            <property name="vexpand">false</property>
+            <property name="min-value">0</property>
+            <property name="max-value">1</property>
+            <property name="value">0</property>
+            <property name="mode">continuous</property>
+            <style>
+              <class name="battery-bar"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">12</property>
+        <property name="margin-top">6</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label" translatable="yes">Information</property>
+            <property name="halign">start</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+            </attributes>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="vexpand">true</property>
+            <property name="hscrollbar-policy">never</property>
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">Status</property>
+                    <property name="subtitle" translatable="yes">Current battery status</property>
+                    <child>
+                      <object class="GtkLabel" id="battery_status_value">
+                        <property name="label">-</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">Capacity</property>
+                    <property name="subtitle" translatable="yes">Current charge level</property>
+                    <child>
+                      <object class="GtkLabel" id="battery_capacity_value">
+                        <property name="label">-</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">Health</property>
+                    <property name="subtitle" translatable="yes">Battery health status</property>
+                    <child>
+                      <object class="GtkLabel" id="battery_health_value">
+                        <property name="label">-</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">Time Remaining</property>
+                    <property name="subtitle" translatable="yes">Estimated time until charged/depleted</property>
+                    <child>
+                      <object class="GtkLabel" id="battery_time_remaining_value">
+                        <property name="label">-</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">Technology</property>
+                    <property name="subtitle" translatable="yes">Battery technology type</property>
+                    <child>
+                      <object class="GtkLabel" id="battery_technology_value">
+                        <property name="label">-</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">Voltage</property>
+                    <property name="subtitle" translatable="yes">Current battery voltage</property>
+                    <child>
+                      <object class="GtkLabel" id="battery_voltage_value">
+                        <property name="label">-</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">Temperature</property>
+                    <property name="subtitle" translatable="yes">Battery temperature</property>
+                    <child>
+                      <object class="GtkLabel" id="battery_temperature_value">
+                        <property name="label">-</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">Cycle Count</property>
+                    <property name="subtitle" translatable="yes">Number of complete charge cycles</property>
+                    <child>
+                      <object class="GtkLabel" id="battery_cycles_value">
+                        <property name="label">-</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">Manufacturer</property>
+                    <property name="subtitle" translatable="yes">Battery manufacturer</property>
+                    <child>
+                      <object class="GtkLabel" id="battery_manufacturer_value">
+                        <property name="label">-</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">Model</property>
+                    <property name="subtitle" translatable="yes">Battery model name</property>
+                    <child>
+                      <object class="GtkLabel" id="battery_model_value">
+                        <property name="label">-</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

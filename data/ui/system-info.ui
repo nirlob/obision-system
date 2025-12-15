@@ -29,6 +29,12 @@
           <object class="GtkButton" id="expand_collapse_button">
             <property name="icon-name">view-sort-ascending-symbolic</property>
             <property name="tooltip-text">Expand/Collapse all categories</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="export_button">
+            <property name="icon-name">document-save-symbolic</property>
+            <property name="tooltip-text">Export system information to JSON</property>
             <property name="margin-end">0</property>
           </object>
         </child>

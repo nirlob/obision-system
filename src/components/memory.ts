@@ -1,6 +1,7 @@
 import Gtk from '@girs/gtk-4.0';
 import GLib from '@girs/glib-2.0';
 import { UtilsService } from '../services/utils-service';
+import { DataService } from '../services/data-service';
 
 export class MemoryComponent {
   private container: Gtk.Box;
@@ -29,11 +30,13 @@ export class MemoryComponent {
   private memorySwapCachedValue!: Gtk.Label;
   private updateTimeoutId: number | null = null;
   private utils: UtilsService;
+  private dataService: DataService;
   private usageHistory: number[] = [];
   private readonly maxHistoryPoints = 60;
 
   constructor() {
     this.utils = UtilsService.instance;
+    this.dataService = DataService.instance;
     const builder = Gtk.Builder.new();
     
     try {
@@ -101,14 +104,9 @@ export class MemoryComponent {
 
   private loadMemoryInfo(): void {
     try {
-      const [memInfoOut] = this.utils.executeCommand('cat', ['/proc/meminfo']);
-      const lines = memInfoOut.split('\n');
-      
-      for (const line of lines) {
-        if (line.startsWith('MemTotal:')) {
-          const kb = parseInt(line.split(/\s+/)[1]);
-          this.memoryTotalValue.set_label(this.utils.formatBytes(kb * 1024));
-        }
+      const memInfo = this.dataService.getMemoryInfo();
+      if (memInfo.total) {
+        this.memoryTotalValue.set_label(this.utils.formatBytes(memInfo.total * 1024));
       }
     } catch (error) {
       console.error('Error loading memory info:', error);
@@ -117,52 +115,25 @@ export class MemoryComponent {
 
   private updateData(): void {
     try {
-      const [memInfoOut] = this.utils.executeCommand('cat', ['/proc/meminfo']);
-      const lines = memInfoOut.split('\n');
+      const memInfo = this.dataService.getMemoryInfo();
       
-      let memTotal = 0;
-      let memFree = 0;
-      let memAvailable = 0;
-      let cached = 0;
-      let buffers = 0;
-      let swapTotal = 0;
-      let swapFree = 0;
-      let shared = 0;
-      let slab = 0;
-      let active = 0;
-      let inactive = 0;
-      let dirty = 0;
-      let writeback = 0;
-      let mapped = 0;
-      let pageTables = 0;
-      let kernelStack = 0;
-      let swapCached = 0;
-      
-      for (const line of lines) {
-        const parts = line.split(/\s+/);
-        const key = parts[0];
-        const value = parseInt(parts[1]) || 0;
-        
-        switch (key) {
-          case 'MemTotal:': memTotal = value; break;
-          case 'MemFree:': memFree = value; break;
-          case 'MemAvailable:': memAvailable = value; break;
-          case 'Cached:': cached = value; break;
-          case 'Buffers:': buffers = value; break;
-          case 'SwapTotal:': swapTotal = value; break;
-          case 'SwapFree:': swapFree = value; break;
-          case 'Shmem:': shared = value; break;
-          case 'Slab:': slab = value; break;
-          case 'Active:': active = value; break;
-          case 'Inactive:': inactive = value; break;
-          case 'Dirty:': dirty = value; break;
-          case 'Writeback:': writeback = value; break;
-          case 'Mapped:': mapped = value; break;
-          case 'PageTables:': pageTables = value; break;
-          case 'KernelStack:': kernelStack = value; break;
-          case 'SwapCached:': swapCached = value; break;
-        }
-      }
+      const memTotal = memInfo.total || 0;
+      const memFree = memInfo.free || 0;
+      const memAvailable = memInfo.available || 0;
+      const cached = memInfo.cached || 0;
+      const buffers = memInfo.buffers || 0;
+      const swapTotal = memInfo.swapTotal || 0;
+      const swapFree = memInfo.swapFree || 0;
+      const shared = memInfo.shared || 0;
+      const slab = memInfo.slab || 0;
+      const active = memInfo.active || 0;
+      const inactive = memInfo.inactive || 0;
+      const dirty = memInfo.dirty || 0;
+      const writeback = memInfo.writeback || 0;
+      const mapped = memInfo.mapped || 0;
+      const pageTables = memInfo.pageTables || 0;
+      const kernelStack = memInfo.kernelStack || 0;
+      const swapCached = memInfo.swapCached || 0;
       
       // Calculate used memory
       const memUsed = memTotal - memFree - buffers - cached;
