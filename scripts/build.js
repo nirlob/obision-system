@@ -63,6 +63,8 @@ function cleanJSContent(content) {
         // Replace atom component references
         .replace(/top_processes_list_1\.TopProcessesList/g, 'TopProcessesList')
         .replace(/top_processes_list_1\./g, '')
+        .replace(/info_row_1\.InfoRow/g, 'InfoRow')
+        .replace(/info_row_1\./g, '')
 
         // Remove other artifacts
         .replace(/\s*void 0;\s*\n?/g, '')
@@ -222,6 +224,24 @@ if (fs.existsSync(dataServiceFile)) {
     dataServiceContent = cleanJSContent(dataServiceContent);
 
     combinedContent += dataServiceContent + '\n';
+}
+
+// Add InfoRow atom component
+const infoRowFile = path.join(BUILD_DIR, 'components', 'atoms', 'info-row.js');
+if (fs.existsSync(infoRowFile)) {
+    console.log('📋 Adding InfoRow atom...');
+    let infoRowContent = fs.readFileSync(infoRowFile, 'utf8');
+
+    // Clean up the content - find the class definition start
+    const classStartIndex = infoRowContent.indexOf('class InfoRow {');
+    if (classStartIndex !== -1) {
+        infoRowContent = infoRowContent.substring(classStartIndex);
+    }
+
+    // Clean up TypeScript/CommonJS artifacts using our function
+    infoRowContent = cleanJSContent(infoRowContent);
+
+    combinedContent += infoRowContent + '\n';
 }
 
 // Add TopProcessesList atom component
@@ -390,7 +410,9 @@ if (fs.existsSync(systemInfoComponentFile)) {
     }
 
     systemInfoContent = cleanJSContent(systemInfoContent)
-        .replace(/utils_service_1\./g, '');
+        .replace(/utils_service_1\./g, '')
+        .replace(/info_row_1\.InfoRow/g, 'InfoRow')
+        .replace(/info_row_1\./g, '');
     combinedContent += systemInfoContent + '\n';
 }
 

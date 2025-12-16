@@ -3,6 +3,7 @@ import Adw from '@girs/adw-1';
 import Gio from '@girs/gio-2.0';
 import { UtilsService } from '../services/utils-service';
 import { DataService } from '../services/data-service';
+import { InfoRow } from './atoms/info-row';
 
 export class SystemInfoComponent {
   private container: Gtk.Box;
@@ -249,10 +250,7 @@ export class SystemInfoComponent {
             
             if (!result || result.length === 0) {
               // No Display detected
-              const noDisplayRow = new Adw.ActionRow({
-                title: 'Display',
-                subtitle: 'No display detected',
-              });
+              const noDisplayRow = this.createDetailRow('Display', 'No display detected');
               (noDisplayRow as any).set_margin_start(40);
               this.hardwareExpander.add_row(noDisplayRow);
               continue;
@@ -273,32 +271,20 @@ export class SystemInfoComponent {
               });
               
               // Add Display information rows
-              const nameRow = new Adw.ActionRow({
-                title: 'Name',
-                subtitle: display.name,
-              });
-              displayExpander.add_row(nameRow);
+              const nameRow = this.createDetailRow('Name', display.name);
+              displayExpander.add_row(nameRow as any);
               
-              const resolutionRow = new Adw.ActionRow({
-                title: 'Resolution',
-                subtitle: `${display.output.width}x${display.output.height}`,
-              });
-              displayExpander.add_row(resolutionRow);
+              const resolutionRow = this.createDetailRow('Resolution', `${display.output.width}x${display.output.height}`);
+              displayExpander.add_row(resolutionRow as any);
               
               if (display.output.refreshRate) {
-                const refreshRow = new Adw.ActionRow({
-                  title: 'Refresh Rate',
-                  subtitle: `${display.output.refreshRate} Hz`,
-                });
-                displayExpander.add_row(refreshRow);
+                const refreshRow = this.createDetailRow('Refresh Rate', `${display.output.refreshRate} Hz`);
+                displayExpander.add_row(refreshRow as any);
               }
               
               if (display.type) {
-                const typeRow = new Adw.ActionRow({
-                  title: 'Type',
-                  subtitle: display.type,
-                });
-                displayExpander.add_row(typeRow);
+                const typeRow = this.createDetailRow('Type', display.type);
+                displayExpander.add_row(typeRow as any);
               }
               
               displayGroup.add(displayExpander);
@@ -323,32 +309,20 @@ export class SystemInfoComponent {
                 });
                 
                 // Add Display information rows
-                const nameRow = new Adw.ActionRow({
-                  title: 'Name',
-                  subtitle: display.name,
-                });
-                displaySubExpander.add_row(nameRow);
+                const nameRow = this.createDetailRow('Name', display.name);
+                displaySubExpander.add_row(nameRow as any);
                 
-                const resolutionRow = new Adw.ActionRow({
-                  title: 'Resolution',
-                  subtitle: `${display.output.width}x${display.output.height}`,
-                });
-                displaySubExpander.add_row(resolutionRow);
+                const resolutionRow = this.createDetailRow('Resolution', `${display.output.width}x${display.output.height}`);
+                displaySubExpander.add_row(resolutionRow as any);
                 
                 if (display.output.refreshRate) {
-                  const refreshRow = new Adw.ActionRow({
-                    title: 'Refresh Rate',
-                    subtitle: `${display.output.refreshRate} Hz`,
-                  });
-                  displaySubExpander.add_row(refreshRow);
+                  const refreshRow = this.createDetailRow('Refresh Rate', `${display.output.refreshRate} Hz`);
+                  displaySubExpander.add_row(refreshRow as any);
                 }
                 
                 if (display.type) {
-                  const typeRow = new Adw.ActionRow({
-                    title: 'Type',
-                    subtitle: display.type,
-                  });
-                  displaySubExpander.add_row(typeRow);
+                  const typeRow = this.createDetailRow('Type', display.type);
+                  displaySubExpander.add_row(typeRow as any);
                 }
                 
                 mainDisplayExpander.add_row(displaySubExpander);
@@ -427,140 +401,89 @@ export class SystemInfoComponent {
             
             // Add CPU information rows
             if (cpuInfo.model && cpuInfo.model !== 'Unknown') {
-              const modelRow = new Adw.ActionRow({
-                title: 'Model',
-                subtitle: cpuInfo.model,
-              });
-              cpuExpander.add_row(modelRow);
+              const modelRow = this.createDetailRow('Model', cpuInfo.model, 'CPU model name');
+              cpuExpander.add_row(modelRow as any);
             }
             
             if (cpuInfo.vendor && cpuInfo.vendor !== 'Unknown') {
-              const vendorRow = new Adw.ActionRow({
-                title: 'Vendor',
-                subtitle: cpuInfo.vendor,
-              });
-              cpuExpander.add_row(vendorRow);
+              const vendorRow = this.createDetailRow('Vendor', cpuInfo.vendor);
+              cpuExpander.add_row(vendorRow as any);
             }
             
             if (cpuInfo.architecture && cpuInfo.architecture !== 'Unknown') {
-              const archRow = new Adw.ActionRow({
-                title: 'Architecture',
-                subtitle: cpuInfo.architecture,
-              });
-              cpuExpander.add_row(archRow);
+              const archRow = this.createDetailRow('Architecture', cpuInfo.architecture);
+              cpuExpander.add_row(archRow as any);
             }
             
             if (cpuInfo.cores > 0) {
-              const coresRow = new Adw.ActionRow({
-                title: 'Physical Cores',
-                subtitle: cpuInfo.cores.toString(),
-              });
-              cpuExpander.add_row(coresRow);
+              const coresRow = this.createDetailRow('Cores', cpuInfo.cores.toString(), 'Physical processor cores');
+              cpuExpander.add_row(coresRow as any);
             }
             
             if (cpuInfo.logicalCores > 0) {
-              const logicalCoresRow = new Adw.ActionRow({
-                title: 'Logical Cores',
-                subtitle: cpuInfo.logicalCores.toString(),
-              });
-              cpuExpander.add_row(logicalCoresRow);
+              const logicalCoresRow = this.createDetailRow('Logical Cores', cpuInfo.logicalCores.toString());
+              cpuExpander.add_row(logicalCoresRow as any);
             }
             
             if (cpuInfo.threads > 0) {
-              const threadsRow = new Adw.ActionRow({
-                title: 'Threads per Core',
-                subtitle: cpuInfo.threads.toString(),
-              });
-              cpuExpander.add_row(threadsRow);
+              const threadsRow = this.createDetailRow('Threads', cpuInfo.threads.toString(), 'Threads per core');
+              cpuExpander.add_row(threadsRow as any);
             }
             
             if (cpuInfo.currentFrequency && cpuInfo.currentFrequency !== 'Unknown') {
-              const freqRow = new Adw.ActionRow({
-                title: 'Current Frequency',
-                subtitle: cpuInfo.currentFrequency,
-              });
-              cpuExpander.add_row(freqRow);
+              const freqRow = this.createDetailRow('Frequency', cpuInfo.currentFrequency, 'Current operating frequency');
+              cpuExpander.add_row(freqRow as any);
             }
             
             if (cpuInfo.maxFrequency && cpuInfo.maxFrequency !== 'Unknown') {
-              const maxFreqRow = new Adw.ActionRow({
-                title: 'Max Frequency',
-                subtitle: cpuInfo.maxFrequency,
-              });
-              cpuExpander.add_row(maxFreqRow);
+              const maxFreqRow = this.createDetailRow('Max Frequency', cpuInfo.maxFrequency);
+              cpuExpander.add_row(maxFreqRow as any);
             }
             
             if (cpuInfo.family && cpuInfo.family !== 'Unknown') {
-              const familyRow = new Adw.ActionRow({
-                title: 'Family',
-                subtitle: cpuInfo.family,
-              });
-              cpuExpander.add_row(familyRow);
+              const familyRow = this.createDetailRow('Family', cpuInfo.family);
+              cpuExpander.add_row(familyRow as any);
             }
             
             if (cpuInfo.modelId && cpuInfo.modelId !== 'Unknown') {
-              const modelIdRow = new Adw.ActionRow({
-                title: 'Model ID',
-                subtitle: cpuInfo.modelId,
-              });
-              cpuExpander.add_row(modelIdRow);
+              const modelIdRow = this.createDetailRow('Model ID', cpuInfo.modelId);
+              cpuExpander.add_row(modelIdRow as any);
             }
             
             if (cpuInfo.stepping && cpuInfo.stepping !== 'Unknown') {
-              const steppingRow = new Adw.ActionRow({
-                title: 'Stepping',
-                subtitle: cpuInfo.stepping,
-              });
-              cpuExpander.add_row(steppingRow);
+              const steppingRow = this.createDetailRow('Stepping', cpuInfo.stepping);
+              cpuExpander.add_row(steppingRow as any);
             }
             
             // Cache information
             if (cpuInfo.l1dCache && cpuInfo.l1dCache !== 'Unknown') {
-              const l1dRow = new Adw.ActionRow({
-                title: 'L1d Cache',
-                subtitle: cpuInfo.l1dCache,
-              });
-              cpuExpander.add_row(l1dRow);
+              const l1dRow = this.createDetailRow('L1d Cache', cpuInfo.l1dCache);
+              cpuExpander.add_row(l1dRow as any);
             }
             
             if (cpuInfo.l1iCache && cpuInfo.l1iCache !== 'Unknown') {
-              const l1iRow = new Adw.ActionRow({
-                title: 'L1i Cache',
-                subtitle: cpuInfo.l1iCache,
-              });
-              cpuExpander.add_row(l1iRow);
+              const l1iRow = this.createDetailRow('L1i Cache', cpuInfo.l1iCache);
+              cpuExpander.add_row(l1iRow as any);
             }
             
             if (cpuInfo.l2Cache && cpuInfo.l2Cache !== 'Unknown') {
-              const l2Row = new Adw.ActionRow({
-                title: 'L2 Cache',
-                subtitle: cpuInfo.l2Cache,
-              });
-              cpuExpander.add_row(l2Row);
+              const l2Row = this.createDetailRow('L2 Cache', cpuInfo.l2Cache);
+              cpuExpander.add_row(l2Row as any);
             }
             
             if (cpuInfo.l3Cache && cpuInfo.l3Cache !== 'Unknown') {
-              const l3Row = new Adw.ActionRow({
-                title: 'L3 Cache',
-                subtitle: cpuInfo.l3Cache,
-              });
-              cpuExpander.add_row(l3Row);
+              const l3Row = this.createDetailRow('L3 Cache', cpuInfo.l3Cache);
+              cpuExpander.add_row(l3Row as any);
             }
             
             if (cpuInfo.virtualization && cpuInfo.virtualization !== 'Unknown') {
-              const virtRow = new Adw.ActionRow({
-                title: 'Virtualization',
-                subtitle: cpuInfo.virtualization,
-              });
-              cpuExpander.add_row(virtRow);
+              const virtRow = this.createDetailRow('Virtualization', cpuInfo.virtualization);
+              cpuExpander.add_row(virtRow as any);
             }
             
             if (cpuInfo.bogomips && cpuInfo.bogomips !== 'Unknown') {
-              const bogomipsRow = new Adw.ActionRow({
-                title: 'BogoMIPS',
-                subtitle: cpuInfo.bogomips,
-              });
-              cpuExpander.add_row(bogomipsRow);
+              const bogomipsRow = this.createDetailRow('BogoMIPS', cpuInfo.bogomips);
+              cpuExpander.add_row(bogomipsRow as any);
             }
             
             cpuGroup.add(cpuExpander);
@@ -590,10 +513,7 @@ export class SystemInfoComponent {
             
             if (gpuInfoList.length === 0) {
               // No GPU detected
-              const noGpuRow = new Adw.ActionRow({
-                title: 'GPU',
-                subtitle: 'No GPU detected',
-              });
+              const noGpuRow = this.createDetailRow('GPU', 'No GPU detected');
               (noGpuRow as any).set_margin_start(40);
               this.hardwareExpander.add_row(noGpuRow);
               continue;
@@ -611,75 +531,48 @@ export class SystemInfoComponent {
               
               // Add GPU information rows
               if (gpuInfo.name) {
-                const nameRow = new Adw.ActionRow({
-                  title: 'Name',
-                  subtitle: gpuInfo.name,
-                });
-                gpuExpander.add_row(nameRow);
+                const nameRow = this.createDetailRow('Name', gpuInfo.name);
+                gpuExpander.add_row(nameRow as any);
               }
               
               if (gpuInfo.vendor && gpuInfo.vendor !== 'Unknown') {
-                const vendorRow = new Adw.ActionRow({
-                  title: 'Vendor',
-                  subtitle: gpuInfo.vendor,
-                });
-                gpuExpander.add_row(vendorRow);
+                const vendorRow = this.createDetailRow('Vendor', gpuInfo.vendor);
+                gpuExpander.add_row(vendorRow as any);
               }
               
               if (gpuInfo.driver && gpuInfo.driver !== 'Unknown') {
-                const driverRow = new Adw.ActionRow({
-                  title: 'Driver',
-                  subtitle: gpuInfo.driver,
-                });
-                gpuExpander.add_row(driverRow);
+                const driverRow = this.createDetailRow('Driver', gpuInfo.driver);
+                gpuExpander.add_row(driverRow as any);
               }
               
               if (gpuInfo.memoryTotal && gpuInfo.memoryTotal !== 'N/A') {
-                const memTotalRow = new Adw.ActionRow({
-                  title: 'Memory Total',
-                  subtitle: gpuInfo.memoryTotal,
-                });
-                gpuExpander.add_row(memTotalRow);
+                const memTotalRow = this.createDetailRow('Memory Total', gpuInfo.memoryTotal);
+                gpuExpander.add_row(memTotalRow as any);
               }
               
               if (gpuInfo.memoryUsed && gpuInfo.memoryUsed !== 'N/A') {
-                const memUsedRow = new Adw.ActionRow({
-                  title: 'Memory Used',
-                  subtitle: gpuInfo.memoryUsed,
-                });
-                gpuExpander.add_row(memUsedRow);
+                const memUsedRow = this.createDetailRow('Memory Used', gpuInfo.memoryUsed);
+                gpuExpander.add_row(memUsedRow as any);
               }
               
               if (gpuInfo.clockSpeed && gpuInfo.clockSpeed !== 'N/A') {
-                const clockRow = new Adw.ActionRow({
-                  title: 'Clock Speed',
-                  subtitle: gpuInfo.clockSpeed,
-                });
-                gpuExpander.add_row(clockRow);
+                const clockRow = this.createDetailRow('Clock Speed', gpuInfo.clockSpeed);
+                gpuExpander.add_row(clockRow as any);
               }
               
               if (gpuInfo.temperature && gpuInfo.temperature !== 'N/A') {
-                const tempRow = new Adw.ActionRow({
-                  title: 'Temperature',
-                  subtitle: gpuInfo.temperature,
-                });
-                gpuExpander.add_row(tempRow);
+                const tempRow = this.createDetailRow('Temperature', gpuInfo.temperature);
+                gpuExpander.add_row(tempRow as any);
               }
               
               if (gpuInfo.power && gpuInfo.power !== 'N/A') {
-                const powerRow = new Adw.ActionRow({
-                  title: 'Power Draw',
-                  subtitle: gpuInfo.power,
-                });
-                gpuExpander.add_row(powerRow);
+                const powerRow = this.createDetailRow('Power Draw', gpuInfo.power);
+                gpuExpander.add_row(powerRow as any);
               }
               
               if (gpuInfo.pciId && gpuInfo.pciId !== 'N/A') {
-                const pciRow = new Adw.ActionRow({
-                  title: 'PCI ID',
-                  subtitle: gpuInfo.pciId,
-                });
-                gpuExpander.add_row(pciRow);
+                const pciRow = this.createDetailRow('PCI ID', gpuInfo.pciId);
+                gpuExpander.add_row(pciRow as any);
               }
               
               gpuGroup.add(gpuExpander);
@@ -701,75 +594,48 @@ export class SystemInfoComponent {
                 
                 // Add GPU information rows
                 if (gpuInfo.name) {
-                  const nameRow = new Adw.ActionRow({
-                    title: 'Name',
-                    subtitle: gpuInfo.name,
-                  });
-                  gpuSubExpander.add_row(nameRow);
+                  const nameRow = this.createDetailRow('Name', gpuInfo.name);
+                  gpuSubExpander.add_row(nameRow as any);
                 }
                 
                 if (gpuInfo.vendor && gpuInfo.vendor !== 'Unknown') {
-                  const vendorRow = new Adw.ActionRow({
-                    title: 'Vendor',
-                    subtitle: gpuInfo.vendor,
-                  });
-                  gpuSubExpander.add_row(vendorRow);
+                  const vendorRow = this.createDetailRow('Vendor', gpuInfo.vendor);
+                  gpuSubExpander.add_row(vendorRow as any);
                 }
                 
                 if (gpuInfo.driver && gpuInfo.driver !== 'Unknown') {
-                  const driverRow = new Adw.ActionRow({
-                    title: 'Driver',
-                    subtitle: gpuInfo.driver,
-                  });
-                  gpuSubExpander.add_row(driverRow);
+                  const driverRow = this.createDetailRow('Driver', gpuInfo.driver);
+                  gpuSubExpander.add_row(driverRow as any);
                 }
                 
                 if (gpuInfo.memoryTotal && gpuInfo.memoryTotal !== 'N/A') {
-                  const memTotalRow = new Adw.ActionRow({
-                    title: 'Memory Total',
-                    subtitle: gpuInfo.memoryTotal,
-                  });
-                  gpuSubExpander.add_row(memTotalRow);
+                  const memTotalRow = this.createDetailRow('Memory Total', gpuInfo.memoryTotal);
+                  gpuSubExpander.add_row(memTotalRow as any);
                 }
                 
                 if (gpuInfo.memoryUsed && gpuInfo.memoryUsed !== 'N/A') {
-                  const memUsedRow = new Adw.ActionRow({
-                    title: 'Memory Used',
-                    subtitle: gpuInfo.memoryUsed,
-                  });
-                  gpuSubExpander.add_row(memUsedRow);
+                  const memUsedRow = this.createDetailRow('Memory Used', gpuInfo.memoryUsed);
+                  gpuSubExpander.add_row(memUsedRow as any);
                 }
                 
                 if (gpuInfo.clockSpeed && gpuInfo.clockSpeed !== 'N/A') {
-                  const clockRow = new Adw.ActionRow({
-                    title: 'Clock Speed',
-                    subtitle: gpuInfo.clockSpeed,
-                  });
-                  gpuSubExpander.add_row(clockRow);
+                  const clockRow = this.createDetailRow('Clock Speed', gpuInfo.clockSpeed);
+                  gpuSubExpander.add_row(clockRow as any);
                 }
                 
                 if (gpuInfo.temperature && gpuInfo.temperature !== 'N/A') {
-                  const tempRow = new Adw.ActionRow({
-                    title: 'Temperature',
-                    subtitle: gpuInfo.temperature,
-                  });
-                  gpuSubExpander.add_row(tempRow);
+                  const tempRow = this.createDetailRow('Temperature', gpuInfo.temperature);
+                  gpuSubExpander.add_row(tempRow as any);
                 }
                 
                 if (gpuInfo.power && gpuInfo.power !== 'N/A') {
-                  const powerRow = new Adw.ActionRow({
-                    title: 'Power Draw',
-                    subtitle: gpuInfo.power,
-                  });
-                  gpuSubExpander.add_row(powerRow);
+                  const powerRow = this.createDetailRow('Power Draw', gpuInfo.power);
+                  gpuSubExpander.add_row(powerRow as any);
                 }
                 
                 if (gpuInfo.pciId && gpuInfo.pciId !== 'N/A') {
-                  const pciRow = new Adw.ActionRow({
-                    title: 'PCI ID',
-                    subtitle: gpuInfo.pciId,
-                  });
-                  gpuSubExpander.add_row(pciRow);
+                  const pciRow = this.createDetailRow('PCI ID', gpuInfo.pciId);
+                  gpuSubExpander.add_row(pciRow as any);
                 }
                 
                 mainGpuExpander.add_row(gpuSubExpander);
@@ -813,145 +679,91 @@ export class SystemInfoComponent {
               
               // Add basic information
               if (memInfo.total > 0) {
-                const totalRow = new Adw.ActionRow({
-                  title: 'Total',
-                  subtitle: this.utils.formatBytes(memInfo.total * 1024),
-                });
-                memoryExpander.add_row(totalRow);
+                const totalRow = this.createDetailRow('Total', this.utils.formatBytes(memInfo.total * 1024));
+                memoryExpander.add_row(totalRow as any);
               }
               
               if (memInfo.used > 0) {
-                const usedRow = new Adw.ActionRow({
-                  title: 'Used',
-                  subtitle: this.utils.formatBytes(memInfo.used * 1024),
-                });
-                memoryExpander.add_row(usedRow);
+                const usedRow = this.createDetailRow('Used', this.utils.formatBytes(memInfo.used * 1024));
+                memoryExpander.add_row(usedRow as any);
               }
               
               if (memInfo.free > 0) {
-                const freeRow = new Adw.ActionRow({
-                  title: 'Free',
-                  subtitle: this.utils.formatBytes(memInfo.free * 1024),
-                });
-                memoryExpander.add_row(freeRow);
+                const freeRow = this.createDetailRow('Free', this.utils.formatBytes(memInfo.free * 1024));
+                memoryExpander.add_row(freeRow as any);
               }
               
               if (memInfo.available > 0) {
-                const availableRow = new Adw.ActionRow({
-                  title: 'Available',
-                  subtitle: this.utils.formatBytes(memInfo.available * 1024),
-                });
-                memoryExpander.add_row(availableRow);
+                const availableRow = this.createDetailRow('Available', this.utils.formatBytes(memInfo.available * 1024));
+                memoryExpander.add_row(availableRow as any);
               }
               
               if (memInfo.buffers > 0) {
-                const buffersRow = new Adw.ActionRow({
-                  title: 'Buffers',
-                  subtitle: this.utils.formatBytes(memInfo.buffers * 1024),
-                });
-                memoryExpander.add_row(buffersRow);
+                const buffersRow = this.createDetailRow('Buffers', this.utils.formatBytes(memInfo.buffers * 1024));
+                memoryExpander.add_row(buffersRow as any);
               }
               
               if (memInfo.cached > 0) {
-                const cachedRow = new Adw.ActionRow({
-                  title: 'Cached',
-                  subtitle: this.utils.formatBytes(memInfo.cached * 1024),
-                });
-                memoryExpander.add_row(cachedRow);
+                const cachedRow = this.createDetailRow('Cached', this.utils.formatBytes(memInfo.cached * 1024));
+                memoryExpander.add_row(cachedRow as any);
               }
               
               if (memInfo.shared > 0) {
-                const sharedRow = new Adw.ActionRow({
-                  title: 'Shared',
-                  subtitle: this.utils.formatBytes(memInfo.shared * 1024),
-                });
-                memoryExpander.add_row(sharedRow);
+                const sharedRow = this.createDetailRow('Shared', this.utils.formatBytes(memInfo.shared * 1024), 'Shared memory between processes');
+                memoryExpander.add_row(sharedRow as any);
               }
               
               if (memInfo.slab > 0) {
-                const slabRow = new Adw.ActionRow({
-                  title: 'Slab',
-                  subtitle: this.utils.formatBytes(memInfo.slab * 1024),
-                });
-                memoryExpander.add_row(slabRow);
+                const slabRow = this.createDetailRow('Slab', this.utils.formatBytes(memInfo.slab * 1024), 'Kernel slab allocator cache');
+                memoryExpander.add_row(slabRow as any);
               }
               
               if (memInfo.active > 0) {
-                const activeRow = new Adw.ActionRow({
-                  title: 'Active',
-                  subtitle: this.utils.formatBytes(memInfo.active * 1024),
-                });
-                memoryExpander.add_row(activeRow);
+                const activeRow = this.createDetailRow('Active', this.utils.formatBytes(memInfo.active * 1024), 'Recently accessed memory');
+                memoryExpander.add_row(activeRow as any);
               }
               
               if (memInfo.inactive > 0) {
-                const inactiveRow = new Adw.ActionRow({
-                  title: 'Inactive',
-                  subtitle: this.utils.formatBytes(memInfo.inactive * 1024),
-                });
-                memoryExpander.add_row(inactiveRow);
+                const inactiveRow = this.createDetailRow('Inactive', this.utils.formatBytes(memInfo.inactive * 1024), 'Not recently accessed memory');
+                memoryExpander.add_row(inactiveRow as any);
               }
               
               if (memInfo.dirty > 0) {
-                const dirtyRow = new Adw.ActionRow({
-                  title: 'Dirty',
-                  subtitle: this.utils.formatBytes(memInfo.dirty * 1024),
-                });
-                memoryExpander.add_row(dirtyRow);
+                const dirtyRow = this.createDetailRow('Dirty', this.utils.formatBytes(memInfo.dirty * 1024), 'Modified pages waiting to be written');
+                memoryExpander.add_row(dirtyRow as any);
               }
               
               if (memInfo.writeback > 0) {
-                const writebackRow = new Adw.ActionRow({
-                  title: 'Writeback',
-                  subtitle: this.utils.formatBytes(memInfo.writeback * 1024),
-                });
-                memoryExpander.add_row(writebackRow);
+                const writebackRow = this.createDetailRow('Writeback', this.utils.formatBytes(memInfo.writeback * 1024), 'Memory being written to disk');
+                memoryExpander.add_row(writebackRow as any);
               }
               
               if (memInfo.mapped > 0) {
-                const mappedRow = new Adw.ActionRow({
-                  title: 'Mapped',
-                  subtitle: this.utils.formatBytes(memInfo.mapped * 1024),
-                });
-                memoryExpander.add_row(mappedRow);
+                const mappedRow = this.createDetailRow('Mapped', this.utils.formatBytes(memInfo.mapped * 1024), 'Memory-mapped files');
+                memoryExpander.add_row(mappedRow as any);
               }
               
               if (memInfo.pageTables > 0) {
-                const pageTablesRow = new Adw.ActionRow({
-                  title: 'Page Tables',
-                  subtitle: this.utils.formatBytes(memInfo.pageTables * 1024),
-                });
-                memoryExpander.add_row(pageTablesRow);
+                const pageTablesRow = this.createDetailRow('Page Tables', this.utils.formatBytes(memInfo.pageTables * 1024), 'Memory used by page tables');
+                memoryExpander.add_row(pageTablesRow as any);
               }
               
               if (memInfo.kernelStack > 0) {
-                const kernelStackRow = new Adw.ActionRow({
-                  title: 'Kernel Stack',
-                  subtitle: this.utils.formatBytes(memInfo.kernelStack * 1024),
-                });
-                memoryExpander.add_row(kernelStackRow);
+                const kernelStackRow = this.createDetailRow('Kernel Stack', this.utils.formatBytes(memInfo.kernelStack * 1024), 'Memory used by kernel stacks');
+                memoryExpander.add_row(kernelStackRow as any);
               }
               
               // Add swap information
               if (memInfo.swapTotal > 0) {
-                const swapTotalRow = new Adw.ActionRow({
-                  title: 'Swap Total',
-                  subtitle: this.utils.formatBytes(memInfo.swapTotal * 1024),
-                });
-                memoryExpander.add_row(swapTotalRow);
+                const swapTotalRow = this.createDetailRow('Swap Total', this.utils.formatBytes(memInfo.swapTotal * 1024));
+                memoryExpander.add_row(swapTotalRow as any);
                 
-                const swapUsedRow = new Adw.ActionRow({
-                  title: 'Swap Used',
-                  subtitle: this.utils.formatBytes(memInfo.swapUsed * 1024),
-                });
-                memoryExpander.add_row(swapUsedRow);
+                const swapUsedRow = this.createDetailRow('Swap Used', this.utils.formatBytes(memInfo.swapUsed * 1024));
+                memoryExpander.add_row(swapUsedRow as any);
                 
                 if (memInfo.swapCached > 0) {
-                  const swapCachedRow = new Adw.ActionRow({
-                    title: 'Swap Cached',
-                    subtitle: this.utils.formatBytes(memInfo.swapCached * 1024),
-                  });
-                  memoryExpander.add_row(swapCachedRow);
+                  const swapCachedRow = this.createDetailRow('Swap Cached', this.utils.formatBytes(memInfo.swapCached * 1024), 'Swap pages cached in memory');
+                  memoryExpander.add_row(swapCachedRow as any);
                 }
               }
             } catch (error) {
@@ -959,27 +771,18 @@ export class SystemInfoComponent {
               
               // Fallback to fastfetch data if /proc/meminfo fails
               if (result.used !== undefined) {
-                const usedRow = new Adw.ActionRow({
-                  title: 'Used',
-                  subtitle: this.utils.formatBytes(result.used),
-                });
-                memoryExpander.add_row(usedRow);
+                const usedRow = this.createDetailRow('Used', this.utils.formatBytes(result.used));
+                memoryExpander.add_row(usedRow as any);
               }
               
               if (result.total !== undefined && result.used !== undefined) {
-                const freeRow = new Adw.ActionRow({
-                  title: 'Available',
-                  subtitle: this.utils.formatBytes(result.total - result.used),
-                });
-                memoryExpander.add_row(freeRow);
+                const freeRow = this.createDetailRow('Available', this.utils.formatBytes(result.total - result.used));
+                memoryExpander.add_row(freeRow as any);
               }
               
               if (result.total !== undefined) {
-                const totalRow = new Adw.ActionRow({
-                  title: 'Total',
-                  subtitle: this.utils.formatBytes(result.total),
-                });
-                memoryExpander.add_row(totalRow);
+                const totalRow = this.createDetailRow('Total', this.utils.formatBytes(result.total));
+                memoryExpander.add_row(totalRow as any);
               }
             }
             
@@ -1043,22 +846,16 @@ export class SystemInfoComponent {
             
             result.forEach((mount: { mountpoint: any; bytes: any; }) => {
               const mountPct = mount.bytes.total > 0 ? `(${(mount.bytes.used * 100 / mount.bytes.total).toFixed(1)}%)` : '';
-              const mountRow = new Adw.ActionRow({
-                title: mount.mountpoint,
-                subtitle: `${this.utils.formatBytes(mount.bytes.used || 0)} / ${this.utils.formatBytes(mount.bytes.total || 0)} ${mountPct}`,
-              });
-              mountExpander.add_row(mountRow);
+              const mountRow = this.createDetailRow(mount.mountpoint, `${this.utils.formatBytes(mount.bytes.used || 0)} / ${this.utils.formatBytes(mount.bytes.total || 0)} ${mountPct}`);
+              mountExpander.add_row(mountRow as any);
             });
             
             // Add swap if available and total > 0 (inside mount points)
             if (hasSwap) {
               const swapPct = `(${(swapData.used * 100 / swapData.total).toFixed(1)}%)`;
               const swapSubtitle = `${this.utils.formatBytes(swapData.used || 0)} / ${this.utils.formatBytes(swapData.total || 0)} ${swapPct}`;
-              const swapRow = new Adw.ActionRow({
-                title: 'Swap',
-                subtitle: swapSubtitle,
-              });
-              mountExpander.add_row(swapRow);
+              const swapRow = this.createDetailRow('Swap', swapSubtitle, 'Virtual memory on disk');
+              mountExpander.add_row(swapRow as any);
             }
             
             // Add mount points expander to disks expander
@@ -1100,25 +897,16 @@ export class SystemInfoComponent {
                     });
                     
                     // Drive Type (HDD/SSD)
-                    const typeRow = new Adw.ActionRow({
-                      title: 'Type',
-                      subtitle: driveType,
-                    });
-                    driveExpander.add_row(typeRow);
+                    const typeRow = this.createDetailRow('Type', driveType, 'Storage technology');
+                    driveExpander.add_row(typeRow as any);
                     
                     // Model
-                    const modelRow = new Adw.ActionRow({
-                      title: 'Model',
-                      subtitle: model,
-                    });
-                    driveExpander.add_row(modelRow);
+                    const modelRow = this.createDetailRow('Model', model, 'Disk model identifier');
+                    driveExpander.add_row(modelRow as any);
                     
                     // Size
-                    const sizeRow = new Adw.ActionRow({
-                      title: 'Size',
-                      subtitle: size,
-                    });
-                    driveExpander.add_row(sizeRow);
+                    const sizeRow = this.createDetailRow('Size', size, 'Total capacity');
+                    driveExpander.add_row(sizeRow as any);
                     
                     // Get partitions for this drive
                     try {
@@ -1142,11 +930,8 @@ export class SystemInfoComponent {
                             const fsType = partParts[3] || '-';
                             const mountPoint = partParts.slice(4).join(' ') || 'Not mounted';
                             
-                            const partRow = new Adw.ActionRow({
-                              title: `/dev/${partName}`,
-                              subtitle: `${partSize} • ${fsType} • ${mountPoint}`,
-                            });
-                            partitionsExpander.add_row(partRow);
+                            const partRow = this.createDetailRow(`/dev/${partName}`, `${partSize} • ${fsType} • ${mountPoint}`);
+                            partitionsExpander.add_row(partRow as any);
                           }
                         }
                         
@@ -1162,11 +947,8 @@ export class SystemInfoComponent {
                       if (tempOut && tempOut.trim()) {
                         const temp = parseInt(tempOut.trim()) / 1000;
                         if (!isNaN(temp)) {
-                          const tempRow = new Adw.ActionRow({
-                            title: 'Temperature',
-                            subtitle: `${temp.toFixed(1)}°C`,
-                          });
-                          driveExpander.add_row(tempRow);
+                          const tempRow = this.createDetailRow('Temperature', `${temp.toFixed(1)}°C`, 'Current drive temperature');
+                          driveExpander.add_row(tempRow as any);
                         }
                       }
                     } catch {
@@ -1234,67 +1016,43 @@ export class SystemInfoComponent {
               
               // Add battery details
               if (battery.modelName) {
-                const modelRow = new Adw.ActionRow({
-                  title: 'Model',
-                  subtitle: battery.modelName,
-                });
-                batteryExpander.add_row(modelRow);
+                const modelRow = this.createDetailRow('Model', battery.modelName);
+                batteryExpander.add_row(modelRow as any);
               }
               
               if (battery.manufacturer) {
-                const mfgRow = new Adw.ActionRow({
-                  title: 'Manufacturer',
-                  subtitle: battery.manufacturer,
-                });
-                batteryExpander.add_row(mfgRow);
+                const mfgRow = this.createDetailRow('Manufacturer', battery.manufacturer);
+                batteryExpander.add_row(mfgRow as any);
               }
               
               if (battery.capacity !== undefined) {
-                const capacityRow = new Adw.ActionRow({
-                  title: 'Capacity',
-                  subtitle: `${battery.capacity.toFixed(1)}%`,
-                });
-                batteryExpander.add_row(capacityRow);
+                const capacityRow = this.createDetailRow('Capacity', `${battery.capacity.toFixed(1)}%`, 'Current battery health');
+                batteryExpander.add_row(capacityRow as any);
               }
               
               if (battery.status) {
-                const statusRow = new Adw.ActionRow({
-                  title: 'Status',
-                  subtitle: battery.status,
-                });
-                batteryExpander.add_row(statusRow);
+                const statusRow = this.createDetailRow('Status', battery.status, 'Charging state');
+                batteryExpander.add_row(statusRow as any);
               }
               
               if (battery.technology) {
-                const techRow = new Adw.ActionRow({
-                  title: 'Technology',
-                  subtitle: battery.technology,
-                });
-                batteryExpander.add_row(techRow);
+                const techRow = this.createDetailRow('Technology', battery.technology, 'Battery chemistry type');
+                batteryExpander.add_row(techRow as any);
               }
               
               if (battery.cycleCount !== undefined) {
-                const cycleRow = new Adw.ActionRow({
-                  title: 'Cycle Count',
-                  subtitle: battery.cycleCount.toString(),
-                });
-                batteryExpander.add_row(cycleRow);
+                const cycleRow = this.createDetailRow('Cycle Count', battery.cycleCount.toString(), 'Number of charge cycles');
+                batteryExpander.add_row(cycleRow as any);
               }
               
               if (battery.voltage !== undefined) {
-                const voltageRow = new Adw.ActionRow({
-                  title: 'Voltage',
-                  subtitle: `${battery.voltage.toFixed(2)} V`,
-                });
-                batteryExpander.add_row(voltageRow);
+                const voltageRow = this.createDetailRow('Voltage', `${battery.voltage.toFixed(2)} V`, 'Current voltage');
+                batteryExpander.add_row(voltageRow as any);
               }
               
               if (battery.temperature !== undefined && battery.temperature !== null) {
-                const tempRow = new Adw.ActionRow({
-                  title: 'Temperature',
-                  subtitle: `${battery.temperature.toFixed(1)} °C`,
-                });
-                batteryExpander.add_row(tempRow);
+                const tempRow = this.createDetailRow('Temperature', `${battery.temperature.toFixed(1)} °C`, 'Current temperature');
+                batteryExpander.add_row(tempRow as any);
               }
               
               batteryGroup.add(batteryExpander);
@@ -1332,29 +1090,134 @@ export class SystemInfoComponent {
   }
 
   private addInfoRow(title: string, subtitle: string, iconName: string, category: 'system' | 'hardware' | 'software' | 'network'): void {
-    const row = new Adw.ActionRow({
-      title: title,
-      subtitle: subtitle,
-    });
-    
-    // Add left padding instead of icon (icon size is typically 16px + some padding)
-    (row as any).set_margin_start(40);
+    const description = this.getDescriptionForField(title);
+    const infoRow = new InfoRow(title, subtitle, description);
+    const row = infoRow.getWidget();
     
     // Add to appropriate category expander
     switch (category) {
       case 'system':
-        this.systemExpander.add_row(row);
+        this.systemExpander.add_row(row as any);
         break;
       case 'hardware':
-        this.hardwareExpander.add_row(row);
+        this.hardwareExpander.add_row(row as any);
         break;
       case 'software':
-        this.softwareExpander.add_row(row);
+        this.softwareExpander.add_row(row as any);
         break;
       case 'network':
-        this.networkExpander.add_row(row);
+        this.networkExpander.add_row(row as any);
         break;
     }
+  }
+  
+  private getDescriptionForField(field: string): string {
+    const descriptions: { [key: string]: string } = {
+      // System
+      'OS': 'Operating system name and version',
+      'Host': 'Computer manufacturer and model',
+      'Kernel': 'Operating system kernel version',
+      'Uptime': 'Time since last system boot',
+      'Shell': 'Default command line interpreter',
+      'Resolution': 'Current screen resolution',
+      'DE': 'Desktop environment',
+      'WM': 'Window manager',
+      'WM Theme': 'Window manager theme',
+      'Theme': 'GTK theme',
+      'Icons': 'Icon theme',
+      'Terminal': 'Default terminal emulator',
+      'Terminal Font': 'Terminal font family',
+      'Locale': 'System language and region',
+      'Users': 'Number of user accounts',
+      'Date': 'Current system date',
+      'Datetime': 'Current date and time',
+      
+      // Hardware - Display
+      'Name': 'Device identifier or model name',
+      'Type': 'Connection type or category',
+      'Refresh Rate': 'Screen refresh frequency',
+      
+      // Hardware - CPU
+      'CPU': 'Central processing unit model',
+      'Model': 'Processor model name',
+      'Vendor': 'Manufacturer or brand',
+      'Architecture': 'Processor architecture type',
+      'Cores': 'Physical processor cores',
+      'Logical Cores': 'Logical processors with hyperthreading',
+      'Threads': 'Simultaneous execution threads',
+      'Frequency': 'Current operating frequency',
+      'Max Frequency': 'Maximum clock speed',
+      'Family': 'Processor family identifier',
+      'Model ID': 'Specific model identifier',
+      'Stepping': 'CPU revision number',
+      'L1d Cache': 'Level 1 data cache',
+      'L1i Cache': 'Level 1 instruction cache',
+      'L2 Cache': 'Level 2 cache',
+      'L3 Cache': 'Level 3 cache',
+      'Virtualization': 'Hardware virtualization support',
+      'BogoMIPS': 'Performance measurement',
+      
+      // Hardware - GPU
+      'GPU': 'Graphics processing unit model',
+      'Driver': 'Graphics driver version',
+      'Memory Total': 'Total graphics memory',
+      'Memory Used': 'Currently used graphics memory',
+      'Clock Speed': 'GPU operating frequency',
+      'Temperature': 'Current GPU temperature',
+      'Power Draw': 'Current power consumption',
+      'PCI ID': 'PCI device identifier',
+      
+      // Hardware - Memory
+      'Memory': 'Total system memory (RAM)',
+      'Total': 'Total capacity',
+      'Used': 'Currently in use',
+      'Free': 'Available for use',
+      'Available': 'Available including cache',
+      'Buffers': 'Buffer memory',
+      'Cached': 'Cache memory',
+      'Swap Total': 'Total swap space',
+      'Swap Used': 'Currently used swap',
+      'Swap Free': 'Available swap space',
+      
+      // Hardware - Disk
+      'Disk': 'Storage capacity and usage',
+      'Filesystem': 'File system type',
+      'Size': 'Total storage size',
+      'Used Space': 'Currently used space',
+      'Use Percentage': 'Percentage used',
+      'Mounted On': 'Mount point location',
+      
+      // Hardware - Battery
+      'Battery': 'Battery status and capacity',
+      'Status': 'Current charging status',
+      'Capacity': 'Battery health percentage',
+      'Energy': 'Current energy level',
+      
+      // Network
+      'Local IP': 'Internal network address',
+      'Public IP': 'External network address',
+      'Interface': 'Network interface name',
+      'State': 'Connection status',
+      'MTU': 'Maximum transmission unit',
+      'MAC Address': 'Hardware address',
+      'IPv4 Address': 'IPv4 network address',
+      'IPv6 Address': 'IPv6 network address',
+      
+      // Media
+      'Brightness': 'Current screen brightness',
+      'Volume': 'System audio volume level',
+      'Media': 'Currently playing media',
+      'Player': 'Active media player',
+      'Song': 'Current song or track',
+    };
+    
+    return descriptions[field] || 'System information';
+  }
+  
+  private createDetailRow(title: string, value: string, description?: string): Gtk.ListBoxRow {
+    const descText = description || this.getDescriptionForField(title);
+    const infoRow = new InfoRow(title, value, descText);
+    return infoRow.getWidget();
   }
 
   private loadNetworkInterfaces(): void {
@@ -1371,10 +1234,7 @@ export class SystemInfoComponent {
       console.log('Parsed interfaces:', interfaces.length);
       
       if (interfaces.length === 0) {
-        const noIfaceRow = new Adw.ActionRow({
-          title: 'No interfaces found',
-          subtitle: 'Could not detect network interfaces',
-        });
+        const noIfaceRow = this.createDetailRow('No interfaces found', 'Could not detect network interfaces');
         (noIfaceRow as any).set_margin_start(40);
         this.networkExpander.add_row(noIfaceRow);
         return;
@@ -1404,68 +1264,44 @@ export class SystemInfoComponent {
         
         // Add state as first detail
         if (iface.state) {
-          const stateRow = new Adw.ActionRow({
-            title: 'State',
-            subtitle: iface.state,
-          });
-          ifaceExpander.add_row(stateRow);
+          const stateRow = this.createDetailRow('State', iface.state, 'Connection status');
+          ifaceExpander.add_row(stateRow as any);
         }
         
         // Add interface details
         if (iface.ipv4) {
-          const ipRow = new Adw.ActionRow({
-            title: 'IPv4 Address',
-            subtitle: iface.ipv4,
-          });
-          ifaceExpander.add_row(ipRow);
+          const ipRow = this.createDetailRow('IPv4 Address', iface.ipv4);
+          ifaceExpander.add_row(ipRow as any);
         }
         
         if (iface.ipv6) {
-          const ipRow = new Adw.ActionRow({
-            title: 'IPv6 Address',
-            subtitle: iface.ipv6,
-          });
-          ifaceExpander.add_row(ipRow);
+          const ipRow = this.createDetailRow('IPv6 Address', iface.ipv6);
+          ifaceExpander.add_row(ipRow as any);
         }
         
         if (iface.netmask) {
-          const maskRow = new Adw.ActionRow({
-            title: 'Netmask',
-            subtitle: iface.netmask,
-          });
-          ifaceExpander.add_row(maskRow);
+          const maskRow = this.createDetailRow('Netmask', iface.netmask);
+          ifaceExpander.add_row(maskRow as any);
         }
         
         if (iface.mac) {
-          const macRow = new Adw.ActionRow({
-            title: 'MAC Address',
-            subtitle: iface.mac,
-          });
-          ifaceExpander.add_row(macRow);
+          const macRow = this.createDetailRow('MAC Address', iface.mac);
+          ifaceExpander.add_row(macRow as any);
         }
         
         if (iface.mtu) {
-          const mtuRow = new Adw.ActionRow({
-            title: 'MTU',
-            subtitle: iface.mtu,
-          });
-          ifaceExpander.add_row(mtuRow);
+          const mtuRow = this.createDetailRow('MTU', iface.mtu, 'Maximum transmission unit');
+          ifaceExpander.add_row(mtuRow as any);
         }
         
         if (iface.rx) {
-          const rxRow = new Adw.ActionRow({
-            title: 'RX bytes',
-            subtitle: iface.rx,
-          });
-          ifaceExpander.add_row(rxRow);
+          const rxRow = this.createDetailRow('RX bytes', iface.rx, 'Total bytes received');
+          ifaceExpander.add_row(rxRow as any);
         }
         
         if (iface.tx) {
-          const txRow = new Adw.ActionRow({
-            title: 'TX bytes',
-            subtitle: iface.tx,
-          });
-          ifaceExpander.add_row(txRow);
+          const txRow = this.createDetailRow('TX bytes', iface.tx, 'Total bytes transmitted');
+          ifaceExpander.add_row(txRow as any);
         }
       }
       
@@ -1570,33 +1406,24 @@ export class SystemInfoComponent {
       }
       
       if (!this.isAuthenticated && needsAuth) {
-        const authRow = new Adw.ActionRow({
-          title: 'Authentication Required',
-          subtitle: 'Click "Authenticate" button to view firewall information',
-        });
+        const authRow = this.createDetailRow('Authentication Required', 'Click "Authenticate" button to view firewall information');
         const lockIcon = new Gtk.Image({
           icon_name: 'dialog-password-symbolic',
           css_classes: ['dim-label'],
         });
-        authRow.add_suffix(lockIcon);
-        firewallExpander.add_row(authRow);
+        (authRow.get_child() as Gtk.Box).append(lockIcon);
+        firewallExpander.add_row(authRow as any);
         group.add(firewallExpander);
         return;
       }
       
-      const statusRow = new Adw.ActionRow({
-        title: 'Status',
-        subtitle: status,
-      });
-      firewallExpander.add_row(statusRow);
+      const statusRow = this.createDetailRow('Status', status, 'Firewall state');
+      firewallExpander.add_row(statusRow as any);
       
       if (details.length > 0 && details.length <= 5) {
         for (const detail of details) {
-          const row = new Adw.ActionRow({
-            title: 'Rule',
-            subtitle: detail,
-          });
-          firewallExpander.add_row(row);
+          const row = this.createDetailRow('Rule', detail);
+          firewallExpander.add_row(row as any);
         }
       }
       
@@ -1624,44 +1451,29 @@ export class SystemInfoComponent {
           const parts = line.split(':');
           if (parts.length >= 4 && parts[0] === 'yes') {
             hasWifi = true;
-            const ssidRow = new Adw.ActionRow({
-              title: 'Connected to',
-              subtitle: parts[1] || 'Unknown',
-            });
-            wifiExpander.add_row(ssidRow);
+            const ssidRow = this.createDetailRow('Connected to', parts[1] || 'Unknown', 'WiFi network name (SSID)');
+            wifiExpander.add_row(ssidRow as any);
             
             if (parts[2]) {
-              const signalRow = new Adw.ActionRow({
-                title: 'Signal Strength',
-                subtitle: `${parts[2]}%`,
-              });
-              wifiExpander.add_row(signalRow);
+              const signalRow = this.createDetailRow('Signal Strength', `${parts[2]}%`, 'WiFi signal quality');
+              wifiExpander.add_row(signalRow as any);
             }
             
             if (parts[3]) {
-              const securityRow = new Adw.ActionRow({
-                title: 'Security',
-                subtitle: parts[3],
-              });
-              wifiExpander.add_row(securityRow);
+              const securityRow = this.createDetailRow('Security', parts[3], 'WiFi encryption type');
+              wifiExpander.add_row(securityRow as any);
             }
             break;
           }
         }
         
         if (!hasWifi) {
-          const noWifiRow = new Adw.ActionRow({
-            title: 'Status',
-            subtitle: 'Not connected',
-          });
-          wifiExpander.add_row(noWifiRow);
+          const noWifiRow = this.createDetailRow('Status', 'Not connected');
+          wifiExpander.add_row(noWifiRow as any);
         }
       } catch (e) {
-        const errorRow = new Adw.ActionRow({
-          title: 'Status',
-          subtitle: 'Information not available',
-        });
-        wifiExpander.add_row(errorRow);
+        const errorRow = this.createDetailRow('Status', 'Information not available');
+        wifiExpander.add_row(errorRow as any);
       }
       
       group.add(wifiExpander);
@@ -1688,41 +1500,26 @@ export class SystemInfoComponent {
           const parts = line.split(':');
           if (parts.length >= 4 && parts[1] === 'ethernet') {
             hasEthernet = true;
-            const deviceRow = new Adw.ActionRow({
-              title: 'Device',
-              subtitle: parts[0],
-            });
-            ethernetExpander.add_row(deviceRow);
+            const deviceRow = this.createDetailRow('Device', parts[0], 'Network interface name');
+            ethernetExpander.add_row(deviceRow as any);
             
-            const stateRow = new Adw.ActionRow({
-              title: 'State',
-              subtitle: parts[2],
-            });
-            ethernetExpander.add_row(stateRow);
+            const stateRow = this.createDetailRow('State', parts[2], 'Connection status');
+            ethernetExpander.add_row(stateRow as any);
             
             if (parts[3]) {
-              const connectionRow = new Adw.ActionRow({
-                title: 'Connection',
-                subtitle: parts[3],
-              });
-              ethernetExpander.add_row(connectionRow);
+              const connectionRow = this.createDetailRow('Connection', parts[3], 'Active network connection');
+              ethernetExpander.add_row(connectionRow as any);
             }
           }
         }
         
         if (!hasEthernet) {
-          const noEthRow = new Adw.ActionRow({
-            title: 'Status',
-            subtitle: 'No ethernet devices found',
-          });
-          ethernetExpander.add_row(noEthRow);
+          const noEthRow = this.createDetailRow('Status', 'No ethernet devices found');
+          ethernetExpander.add_row(noEthRow as any);
         }
       } catch (e) {
-        const errorRow = new Adw.ActionRow({
-          title: 'Status',
-          subtitle: 'Information not available',
-        });
-        ethernetExpander.add_row(errorRow);
+        const errorRow = this.createDetailRow('Status', 'Information not available');
+        ethernetExpander.add_row(errorRow as any);
       }
       
       group.add(ethernetExpander);
@@ -1770,50 +1567,32 @@ export class SystemInfoComponent {
         }
         
         if (ipv4Servers.length === 0 && ipv6Servers.length === 0 && searchDomains.length === 0) {
-          const noDnsRow = new Adw.ActionRow({
-            title: 'Status',
-            subtitle: 'No DNS configuration found',
-          });
-          dnsExpander.add_row(noDnsRow);
+          const noDnsRow = this.createDetailRow('Status', 'No DNS configuration found');
+          dnsExpander.add_row(noDnsRow as any);
         } else {
           // Always show IPv6 row
-          const ipv6Row = new Adw.ActionRow({
-            title: 'Nameserver IPv6',
-            subtitle: ipv6Servers.length > 0 ? ipv6Servers.join(', ') : 'Not configured',
-          });
-          dnsExpander.add_row(ipv6Row);
+          const ipv6Row = this.createDetailRow('Nameserver IPv6', ipv6Servers.length > 0 ? ipv6Servers.join(', ') : 'Not configured', 'IPv6 DNS servers');
+          dnsExpander.add_row(ipv6Row as any);
           
           // Always show IPv4 row
-          const ipv4Row = new Adw.ActionRow({
-            title: 'Nameserver IPv4',
-            subtitle: ipv4Servers.length > 0 ? ipv4Servers.join(', ') : 'Not configured',
-          });
-          dnsExpander.add_row(ipv4Row);
+          const ipv4Row = this.createDetailRow('Nameserver IPv4', ipv4Servers.length > 0 ? ipv4Servers.join(', ') : 'Not configured', 'IPv4 DNS servers');
+          dnsExpander.add_row(ipv4Row as any);
           
           // Show search domains
           if (searchDomains.length > 0) {
-            const searchRow = new Adw.ActionRow({
-              title: 'Search Domains',
-              subtitle: searchDomains.join(', '),
-            });
-            dnsExpander.add_row(searchRow);
+            const searchRow = this.createDetailRow('Search Domains', searchDomains.join(', '), 'DNS search suffixes');
+            dnsExpander.add_row(searchRow as any);
           }
           
           // Show options if present
           if (options.length > 0) {
-            const optionsRow = new Adw.ActionRow({
-              title: 'Options',
-              subtitle: options.join(', '),
-            });
-            dnsExpander.add_row(optionsRow);
+            const optionsRow = this.createDetailRow('Options', options.join(', '), 'DNS resolver options');
+            dnsExpander.add_row(optionsRow as any);
           }
         }
       } catch (e) {
-        const errorRow = new Adw.ActionRow({
-          title: 'Status',
-          subtitle: 'Information not available',
-        });
-        dnsExpander.add_row(errorRow);
+        const errorRow = this.createDetailRow('Status', 'Information not available');
+        dnsExpander.add_row(errorRow as any);
       }
       
       group.add(dnsExpander);
@@ -1840,39 +1619,24 @@ export class SystemInfoComponent {
           const parts = line.split(':');
           if (parts.length >= 3 && (parts[1].includes('vpn') || parts[1].includes('tun') || parts[1].includes('wireguard'))) {
             hasVPN = true;
-            const nameRow = new Adw.ActionRow({
-              title: 'Connection',
-              subtitle: parts[0],
-            });
-            vpnExpander.add_row(nameRow);
+            const nameRow = this.createDetailRow('Connection', parts[0], 'VPN connection name');
+            vpnExpander.add_row(nameRow as any);
             
-            const typeRow = new Adw.ActionRow({
-              title: 'Type',
-              subtitle: parts[1],
-            });
-            vpnExpander.add_row(typeRow);
+            const typeRow = this.createDetailRow('Type', parts[1], 'VPN protocol type');
+            vpnExpander.add_row(typeRow as any);
             
-            const stateRow = new Adw.ActionRow({
-              title: 'State',
-              subtitle: parts[2],
-            });
-            vpnExpander.add_row(stateRow);
+            const stateRow = this.createDetailRow('State', parts[2], 'Connection status');
+            vpnExpander.add_row(stateRow as any);
           }
         }
         
         if (!hasVPN) {
-          const noVpnRow = new Adw.ActionRow({
-            title: 'Status',
-            subtitle: 'No active VPN connections',
-          });
-          vpnExpander.add_row(noVpnRow);
+          const noVpnRow = this.createDetailRow('Status', 'No active VPN connections');
+          vpnExpander.add_row(noVpnRow as any);
         }
       } catch (e) {
-        const errorRow = new Adw.ActionRow({
-          title: 'Status',
-          subtitle: 'Information not available',
-        });
-        vpnExpander.add_row(errorRow);
+        const errorRow = this.createDetailRow('Status', 'Information not available');
+        vpnExpander.add_row(errorRow as any);
       }
       
       group.add(vpnExpander);

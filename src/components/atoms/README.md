@@ -1,127 +1,102 @@
-# Top Processes List - Atom Component
+# Atom Components
 
-## Descripción
-Componente reutilizable que muestra un listado de procesos ordenados por uso de CPU o memoria.
+Los componentes "atom" son widgets reutilizables de bajo nivel que se utilizan en múltiples lugares de la aplicación.
 
-## Ubicación
-`src/components/atoms/top-processes-list.ts`
+## InfoRow
 
-## Uso
+Componente reutilizable para mostrar información en formato de fila con título, valor y descripción opcional.
 
-### Importar el componente
+### Características
+
+- **Diseño consistente**: Layout de tres columnas con alineación profesional
+- **Título y descripción**: Alineados a la izquierda en su panel
+- **Valor**: Alineado a la derecha con separación visual clara
+- **Sin negrita en títulos**: Tipografía limpia y moderna
+- **Centrado inteligente**: Centra verticalmente el título cuando no hay descripción
+- **Descripciones contextuales**: Texto explicativo opcional para cada campo
+
+### Uso
+
 ```typescript
-import { TopProcessesList, ProcessInfo, SortBy } from './atoms/top-processes-list';
+import { InfoRow } from './atoms/info-row';
+
+// Con descripción
+const row = new InfoRow('CPU Usage', '45%', 'Current processor utilization').getWidget();
+expanderRow.add_row(row as any);
+
+// Sin descripción (se centrará verticalmente)
+const simpleRow = new InfoRow('Temperature', '45°C').getWidget();
+expanderRow.add_row(simpleRow as any);
+
+// Para actualizar el valor dinámicamente
+const row = new InfoRow('IP Address', '-').getWidget();
+const valueLabel = (row.get_child() as Gtk.Box).get_last_child() as Gtk.Label;
+// Luego actualizar el valor:
+valueLabel.set_label('192.168.1.100');
 ```
 
-### Crear instancia
-```typescript
-// Ordenar por CPU, mostrar 5 procesos
-const topProcesses = new TopProcessesList('cpu', 5);
+### Dónde se usa
 
-// Ordenar por memoria, mostrar 10 procesos
-const topProcesses = new TopProcessesList('memory', 10);
-```
+El componente InfoRow se utiliza en las siguientes secciones:
 
-### Añadir al contenedor
-```typescript
-const mainBox = new Gtk.Box({ orientation: Gtk.Orientation.HORIZONTAL });
-mainBox.append(topProcesses.getWidget());
-```
+#### System Information (system-info.ts)
+- **Hardware**: Display, CPU, GPU, Memory
+- **Storage**: Disk mount points, swap, physical drives, partitions
+- **Power**: Battery details (model, capacity, status, etc.)
+- **Network**: Interfaces (IPv4, IPv6, MAC, MTU, RX/TX)
+- **Connectivity**: WiFi, Ethernet, DNS, VPN, Firewall
+- **Total**: ~66 filas de información
 
-### Actualizar datos
-```typescript
-const processes: ProcessInfo[] = [
-  { name: 'firefox', cpu: 45.2, memory: 512000 },
-  { name: 'chrome', cpu: 32.1, memory: 890000 },
-  { name: 'code', cpu: 12.5, memory: 450000 },
-];
+#### Component Views
+- **CPU Component** (cpu.ts): Detalles de información de CPU
+- **GPU Component** (gpu.ts): Detalles de información de GPU
+- **Memory Component** (memory.ts): Detalles de información de memoria
+- **Disk Component** (disk.ts): 
+  - Filesystems: tipo, tamaño, espacio usado/disponible (4 filas por filesystem)
+  - Physical drives: tipo, tamaño, operaciones R/W, SMART health, temperatura (6 filas por disco)
+- **Network Component** (network.ts):
+  - Network interfaces: IP, MAC, velocidad, bytes recibidos/transmitidos (5 filas por interfaz)
+- **Battery Component** (battery.ts): Detalles de información de batería
 
-topProcesses.updateProcesses(processes);
-```
+### Ventajas
 
-### Cambiar configuración
-```typescript
-// Cambiar criterio de ordenación
-topProcesses.setSortBy('memory');
+1. **Consistencia**: Todas las filas de información tienen el mismo aspecto
+2. **Mantenibilidad**: Cambios de diseño se aplican automáticamente en toda la app
+3. **Legibilidad**: Layout optimizado para presentar información de forma clara
+4. **Reutilización**: Un solo componente para múltiples casos de uso
+5. **Flexibilidad**: Con o sin descripción según las necesidades
 
-// Cambiar número máximo de líneas
-topProcesses.setMaxLines(8);
-```
+## TopProcessesList
 
-## Parámetros del Constructor
+Componente reutilizable para mostrar una lista de los procesos principales con mayor uso de CPU y memoria.
 
-- **sortBy** (`'cpu' | 'memory'`): Criterio de ordenación
-  - `'cpu'`: Ordena por uso de CPU (%)
-  - `'memory'`: Ordena por uso de memoria (KB)
-  
-- **maxLines** (`number`): Número máximo de procesos a mostrar (default: 5)
+### Características
 
-## Métodos Públicos
+- Lista de procesos ordenados por uso de recursos
+- Actualización dinámica de datos
+- Formato consistente para nombre de proceso y uso de recursos
 
-- `getWidget(): Gtk.Box` - Retorna el widget contenedor
-- `updateProcesses(processes: ProcessInfo[])` - Actualiza la lista de procesos
-- `setSortBy(sortBy: SortBy)` - Cambia el criterio de ordenación
-- `setMaxLines(maxLines: number)` - Cambia el número máximo de líneas
-- `destroy()` - Limpia recursos
-
-## Interfaz ProcessInfo
+### Uso
 
 ```typescript
-interface ProcessInfo {
-  name: string;    // Nombre del proceso
-  cpu: number;     // Uso de CPU en porcentaje
-  memory: number;  // Uso de memoria en KB
-}
-```
-
-## Ejemplo de Integración en un Componente
-
-```typescript
-import Gtk from '@girs/gtk-4.0';
-import GLib from '@girs/glib-2.0';
 import { TopProcessesList, ProcessInfo } from './atoms/top-processes-list';
-import { ProcessesService } from '../services/processes-service';
 
-export class CpuComponent {
-  private topProcessesList: TopProcessesList;
-  private processesService: ProcessesService;
-  
-  constructor() {
-    // Crear widget de top processes ordenado por CPU
-    this.topProcessesList = new TopProcessesList('cpu', 8);
-    this.processesService = ProcessesService.instance;
-    
-    // Añadir al layout
-    const rightPanel = builder.get_object('right_panel') as Gtk.Box;
-    rightPanel.append(this.topProcessesList.getWidget());
-    
-    // Actualizar periódicamente
-    GLib.timeout_add(GLib.PRIORITY_DEFAULT, 2000, () => {
-      this.updateTopProcesses();
-      return GLib.SOURCE_CONTINUE;
-    });
-  }
-  
-  private updateTopProcesses(): void {
-    const allProcesses = this.processesService.getProcesses();
-    this.topProcessesList.updateProcesses(allProcesses);
-  }
-  
-  public destroy(): void {
-    this.topProcessesList.destroy();
-  }
-}
+const topProcessesList = new TopProcessesList(5); // Top 5 procesos
+const widget = topProcessesList.getWidget();
+someContainer.append(widget);
+
+// Actualizar procesos
+const processes: ProcessInfo[] = [
+  { name: 'firefox', cpu: 25.5, memory: 1024000 },
+  { name: 'code', cpu: 15.2, memory: 512000 }
+];
+topProcessesList.updateProcesses(processes);
 ```
 
-## Build Script
+### Dónde se usa
 
-El componente debe incluirse en `scripts/build.js` en la sección de atoms, antes de los componentes principales:
-
-```javascript
-// Add TopProcessesList atom component
-const topProcessesListFile = path.join(BUILD_DIR, 'components', 'atoms', 'top-processes-list.js');
-if (fs.existsSync(topProcessesListFile)) {
-    console.log('📋 Adding TopProcessesList atom...');
-    // ... cleanup and concatenation
-}
-```
+- Resume Component (resumen de procesos principales)
+- CPU Component (procesos con mayor uso de CPU)
+- Memory Component (procesos con mayor uso de memoria)
+- Disk Component (procesos con mayor actividad de disco)
+- Network Component (procesos con mayor tráfico de red)

@@ -5,6 +5,7 @@ import { NetworkService } from '../services/network-service';
 import { NetworkData, NetworkInterface } from '../interfaces/network';
 import { ProcessesService } from '../services/processes-service';
 import { TopProcessesList, ProcessInfo } from './atoms/top-processes-list';
+import { InfoRow } from './atoms/info-row';
 
 export class NetworkComponent {
   private container: Gtk.Box;
@@ -192,56 +193,26 @@ export class NetworkComponent {
     });
     
     // Create detail rows
-    const ipRow = new Adw.ActionRow({
-      title: 'IP Address',
-    });
-    const ipLabel = new Gtk.Label({
-      label: '-',
-      css_classes: ['dim-label'],
-    });
-    ipRow.add_suffix(ipLabel);
+    const ipRow = new InfoRow('IP Address', '-').getWidget();
+    const ipLabel = (ipRow.get_child() as Gtk.Box).get_last_child() as Gtk.Label;
     
-    const macRow = new Adw.ActionRow({
-      title: 'MAC Address',
-    });
-    const macLabel = new Gtk.Label({
-      label: '-',
-      css_classes: ['dim-label'],
-    });
-    macRow.add_suffix(macLabel);
+    const macRow = new InfoRow('MAC Address', '-').getWidget();
+    const macLabel = (macRow.get_child() as Gtk.Box).get_last_child() as Gtk.Label;
     
-    const speedRow = new Adw.ActionRow({
-      title: 'Link Speed',
-    });
-    const speedLabel = new Gtk.Label({
-      label: '-',
-      css_classes: ['dim-label'],
-    });
-    speedRow.add_suffix(speedLabel);
+    const speedRow = new InfoRow('Link Speed', '-', 'Maximum connection speed').getWidget();
+    const speedLabel = (speedRow.get_child() as Gtk.Box).get_last_child() as Gtk.Label;
     
-    const rxRow = new Adw.ActionRow({
-      title: 'Received',
-    });
-    const rxLabel = new Gtk.Label({
-      label: '-',
-      css_classes: ['dim-label'],
-    });
-    rxRow.add_suffix(rxLabel);
+    const rxRow = new InfoRow('Received', '-', 'Total bytes received').getWidget();
+    const rxLabel = (rxRow.get_child() as Gtk.Box).get_last_child() as Gtk.Label;
     
-    const txRow = new Adw.ActionRow({
-      title: 'Transmitted',
-    });
-    const txLabel = new Gtk.Label({
-      label: '-',
-      css_classes: ['dim-label'],
-    });
-    txRow.add_suffix(txLabel);
+    const txRow = new InfoRow('Transmitted', '-', 'Total bytes transmitted').getWidget();
+    const txLabel = (txRow.get_child() as Gtk.Box).get_last_child() as Gtk.Label;
     
-    expanderRow.add_row(ipRow);
-    expanderRow.add_row(macRow);
-    expanderRow.add_row(speedRow);
-    expanderRow.add_row(rxRow);
-    expanderRow.add_row(txRow);
+    expanderRow.add_row(ipRow as any);
+    expanderRow.add_row(macRow as any);
+    expanderRow.add_row(speedRow as any);
+    expanderRow.add_row(rxRow as any);
+    expanderRow.add_row(txRow as any);
     
     this.networkInterfacesGroup.add(expanderRow);
     this.interfaceRows.set(interfaceName, expanderRow);

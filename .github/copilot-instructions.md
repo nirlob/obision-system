@@ -1,7 +1,7 @@
 # Obision System - AI Agent Instructions
 
 ## Project Overview
-A modern GNOME system monitoring application built with TypeScript, GTK4, and Libadwaita. Displays comprehensive system information (CPU, GPU, memory, disk, network, temperatures, processes, services, drivers, logs) using an adaptive `AdwNavigationSplitView` layout. Uses a **hybrid build system**: TypeScript → GJS-compatible JavaScript via custom Node.js build script (`scripts/build.js`) that concatenates all modules into a single executable file.
+A modern GNOME system monitoring application built with TypeScript, GTK4, and Libadwaita. Displays comprehensive system information (CPU, GPU, memory, disk, network, temperatures, processes, services, drivers, logs) using a **custom single-pane navigation layout** with toggle-button-based sidebar. Uses a **hybrid build system**: TypeScript → GJS-compatible JavaScript via custom Node.js build script (`scripts/build.js`) that concatenates all modules into a single executable file.
 
 ## Critical Build System
 **NEVER use `tsc` directly.** Always use `npm run build` which:
@@ -23,7 +23,9 @@ A modern GNOME system monitoring application built with TypeScript, GTK4, and Li
 // 4. Main components (in order):
 //    - install-dialog.js (optional), application-info-dialog.js (optional)
 //    - resume.js, cpu.js, gpu.js, memory.js, disk.js, network.js
-//    - battery.js, system-info.js, resources.js, processes.js, services.js, drivers.js, logs.js
+//    - system-info.js, battery.js, resources.js (optional)
+//    - processes.js, services.js, drivers.js, logs.js
+//    - applications-list.js (optional)
 // 5. main.js (application entry point)
 ```
 **Critical**: Order prevents undefined references in single-file output. When adding new modules:
@@ -136,7 +138,16 @@ export class ResumeComponent {
   public getWidget(): Gtk.Box { return this.container; }
   
   public destroy(): void {
-    if (this.updateTimeoucustom button-based navigation via `onNavigationItemSelected()`:
+    if (this.updateTimeoutId !== null) {
+      GLib.source_remove(this.updateTimeoutId);
+    }
+  }
+}
+```
+**Standard component lifecycle**: Constructor loads UI, sets up updates → `getWidget()` returns container → `destroy()` cleans up resources.
+
+### Navigation & View Management
+Main window uses custom button-based navigation via `onNavigationItemSelected()`:
 ```typescript
 private onNavigationItemSelected(index: number, contentBox: Gtk.Box, 
                                  selectedButton: Gtk.ToggleButton, 
@@ -154,7 +165,7 @@ private onNavigationItemSelected(index: number, contentBox: Gtk.Box,
     child = next;
   }
   
-  // Switch based on index (0-11)
+  // Switch based on index (0-11, with battery at 6 conditionally hidden)
   switch (index) {
     case 0: this.showResume(contentBox); break;        // Dashboard/Resume
     case 1: this.showCpu(contentBox); break;           // CPU Monitor
@@ -162,22 +173,24 @@ private onNavigationItemSelected(index: number, contentBox: Gtk.Box,
     case 3: this.showMemory(contentBox); break;        // Memory Monitor
     case 4: this.showDisk(contentBox); break;          // Disk Monitor
     case 5: this.showNetwork(contentBox); break;       // Network Monitor
-    case 6: this.showBattery(contentBox); break;       // Battery Monitor
-    case 7: this.showSystemInfo(contentBox); break;    // System Information
-    case 8: this.showProcesses(contentBox); break;     // Process Monitor
+    case 6: this.showBattery(contentBox); break;       // Battery Monitor (hidden if no battery)
+    case 7: this.showProcesses(contentBox); break;     // Process Monitor
+    case 8: this.showSystemInfo(contentBox); break;    // System Information
     case 9: this.showServices(contentBox); break;      // Services Manager
     case 10: this.showDrivers(contentBox); break;      // Hardware Drivers
     case 11: this.showLogs(contentBox); break;         // System Logs
   }
 }
 ```
-**Pattern**: Each `showX()` method instantiates component class, calls `getWidget()`, adds to contentBox. Navigation uses `Gtk.ToggleButton` widgets instead of `GtkListBoxRow` for custom styling and state management
-   **Create component**: `src/components/my-view.ts` with `constructor()`, `getWidget()`, `destroy()`
+**Pattern**: Each `showX()` method instantiates component class, calls `getWidget()`, adds to contentBox. Navigation uses `Gtk.ToggleButton` widgets with IDs `menu_option_N` for custom styling and state management.
+
+**Adding New View** (follow this exact sequence):
+1. **Create component**: `src/components/my-view.ts` with `constructor()`, `getWidget()`, `destroy()`
 2. **Create UI file**: `data/ui/my-view.ui` with root container having unique ID
 3. **Add navigation button**: In `data/ui/main.ui`, add `<object class="GtkToggleButton">` to sidebar (order determines index)
    ```xml
    <child>
-     <object class="GtkToggleButton" id="menu_button_12">
+     <object class="GtkToggleButton" id="menu_option_12">
        <property name="child">
          <object class="GtkBox">
            <property name="spacing">12</property>
@@ -197,24 +210,13 @@ private onNavigationItemSelected(index: number, contentBox: Gtk.Box,
    </child>
    ```
 4. **Import in main**: Add `import { MyViewComponent } from './components/my-view';` to `src/main.ts`
-5. **Wire navigation**: In `createMainWindow()`, get button reference and connect to `onNavigationItemSelected()`
-6. **Add switch case**: In `onNavigationItemSelected()`, add `case 12: this.showMyView(contentBox); break;`
-7. **Create show method**: `private showMyView(contentBox: Gtk.Box): void { /* instantiate & append */ }`
-8. **Upddata-service.ts             # Hardware data collection (CPU, GPU, memory, disk)
-│   ├── resume-service.ts           # Resume/dashboard data aggregation
-│   ├── network-service.ts          # Network statistics and monitoring
-│   ├── processes-service.ts        # Process information and management
-│   └── logs-service.ts             # System logs parsing
-├── components/
-│   ├── resume.ts                   # Dashboard with CPU/memory charts (Gtk.DrawingArea)
-│   ├── cpu.ts, gpu.ts, memory.ts, disk.ts, network.ts  # Resource-specific views
-│   ├── battery.ts                  # Battery status and history monitoring(order matters!)
-2. Create component: `src/components/my-view.ts` with `constructor()`, `getWidget()`, `destroy()`
-3. Create UI file: `data/ui/my-view.ui` with root object having unique ID
-4. Add case in `onNavigationItemSelected()` switch
-5. Update `scripts/build.js` concatenation order (add before `main.js`)
-6. Import component in `src/main.ts`: `import { MyViewComponent } from './components/my-view';`
-7. Rebuild: `npm run build && ./builddir/main.js`
+5. **Get button reference**: Add `const menuButton12 = builder.get_object('menu_option_12') as Gtk.ToggleButton;` in `createMainWindow()`
+6. **Connect handler**: `menuButton12.connect('clicked', () => this.onNavigationItemSelected(12, mainContent, menuButton12, allMenuButtons, contentTitle));`
+7. **Add to button array**: Include `menuButton12` in `allMenuButtons` array
+8. **Add switch case**: In `onNavigationItemSelected()`, add `case 12: this.showMyView(contentBox); break;`
+9. **Create show method**: `private showMyView(contentBox: Gtk.Box): void { /* instantiate & append */ }`
+10. **Update build script**: Add component to `scripts/build.js` concatenation (before `main.js` section)
+11. **Rebuild**: `npm run build && ./builddir/main.js`
 
 ### UI Loading Pattern (Dual-Path Fallback)
 All UI loading uses try/catch for installed vs. development paths:
@@ -243,12 +245,18 @@ src/
 ├── components/
 │   ├── resume.ts                   # Dashboard with CPU/memory charts (Gtk.DrawingArea)
 │   ├── cpu.ts, gpu.ts, memory.ts, disk.ts, network.ts  # Resource-specific views
+│   ├── battery.ts                  # Battery status and history monitoring
 │   ├── system-info.ts              # System details view
-│   ├── resources.ts                # Combined resource monitoring
+│   ├── resources.ts                # Combined resource monitoring (optional)
 │   ├── processes.ts                # Process list with filtering
 │   ├── services.ts                 # System services management
 │   ├── drivers.ts                  # Hardware drivers information
-│   └── logs.ts                     # System logs viewer
+│   ├── logs.ts                     # System logs viewer
+│   ├── install-dialog.ts           # Package installation dialog (optional)
+│   ├── application-info-dialog.ts  # Application details dialog (optional)
+│   ├── applications-list.ts        # Applications list view (optional)
+│   └── atoms/
+│       └── top-processes-list.ts   # Reusable process list widget
 └── interfaces/
     ├── resume.ts, network.ts, processes.ts, logs.ts  # TypeScript type definitions
 
@@ -264,16 +272,12 @@ builddir/                           # Generated output (git-ignored)
 └── data/                           # Copied resources
 ```
 
-## GJS/GApplicationWindow`**: Main window with custom sidebar navigation
-  - Sidebar: `GtkBox` with `GtkToggleButton` widgets for navigation (12 views)
-  - Content: Scrollable `GtkBox` (`main_content`) dynamically populated on selection
-- **`AdwHeaderBar`**: Title bar with dynamic title label showing current view name
-- **`AdwAboutWindow`**: Standard GNOME about dialog (created in `showAboutDialog()`)
-- **`AdwPreferencesWindow`**: Settings dialog (created in `showPreferencesDialog()` with GSettings binding)
-- **`AdwToolbarView`**: Container combining header bar + scrollable content (used in components)
-- **Custom Navigation**: Uses `Gtk.ToggleButton` state management instead of traditional `GtkListBox`
+## GJS/GTK Patterns
 
-**Widget naming convention**: Use descriptive IDs in UI files (e.g., `cpu_value`, `memory_chart`, `processes_list`, `menu_button_0
+### GJS Import Syntax
+Build script converts TypeScript imports to GJS format (`builddir/main.js` header):
+```javascript
+#!/usr/bin/env gjs
 
 imports.gi.versions.Gtk = '4.0';
 imports.gi.versions.Adw = '1';
@@ -284,21 +288,24 @@ const { Gdk } = imports.gi;
 const { Adw } = imports.gi;
 const { GLib } = imports.gi;
 const { Pango } = imports.gi;
-`;
 ```
 
-### Adwaita UI Patterns
-Modern GNOME 45+ UI components used throughout (`data/ui/main.ui`):
-- **`AdwNavigationSplitView`**: Two-pane responsive layout
-  - Sidebar: `GtkListBox` with navigation items (`navigation_list`)
-  - Content: Scrollable area (`main_content`) dynamically populated
-- **`AdwBreakpoint`**: Automatically collapse sidebar when `max-width: 400sp`
-- **`AdwToolbarView`**: Container combining header bar + scrollable content
+### UI Architecture
+Main window uses **custom single-pane layout** with sidebar navigation (`data/ui/main.ui`):
+- **`Adw.ApplicationWindow`**: Main window (`application_window`)
+  - Sidebar: `GtkBox` with 12 `GtkToggleButton` widgets (IDs: `menu_option_0` through `menu_option_11`)
+  - Content: Scrollable `GtkBox` (`main_content`) dynamically populated on selection
+  - Header: `AdwHeaderBar` with dynamic title label (`content_title`)
+- **Navigation Pattern**: Custom button-based navigation, not `AdwNavigationSplitView` or `GtkListBox`
+- **Battery Detection**: `menu_option_6` (Battery view) hidden if `DataService.hasBattery()` returns false
+
+### Adwaita UI Components
+- **`AdwToolbarView`**: Used in components to combine header bar + scrollable content
 - **`AdwHeaderBar`**: Modern title bar with menu button
 - **`AdwAboutWindow`**: Standard GNOME about dialog (created in `showAboutDialog()`)
 - **`AdwPreferencesWindow`**: Settings dialog (created in `showPreferencesDialog()` with GSettings binding)
 
-**Widget naming convention**: Use descriptive IDs in UI files (e.g., `cpu_value`, `memory_chart`, `processes_list`)
+**Widget naming convention**: Use descriptive IDs in UI files (e.g., `cpu_value`, `memory_chart`, `processes_list`, `menu_option_0`)
 
 ### CSS Loading
 Load styles early in `onActivate()` (`src/main.ts` lines 70-81):
@@ -338,7 +345,9 @@ this.cpuChart.queue_draw(); // Trigger redraw
 - **String cleaning**: Build script regex strips `exports.*`, `require()`, `__importDefault`, `_1.default.` references
 
 ## Development Workflow
-1. EdCreate component**: `src/components/my-view.ts` with standard pattern:
+
+### Creating a New Component
+1. **Create component**: `src/components/my-view.ts` with standard pattern:
    ```typescript
    export class MyViewComponent {
      private container: Gtk.Box;
@@ -368,41 +377,16 @@ this.cpuChart.queue_draw(); // Trigger redraw
    }
    ```
 2. **Create UI file**: `data/ui/my-view.ui` with `AdwToolbarView` or `GtkBox` as root
-3. **Add navigation button**: In `data/ui/main.ui` sidebar, add `GtkToggleButton` with unique ID
+3. **Add navigation button**: In `data/ui/main.ui` sidebar, add `GtkToggleButton` with unique ID (e.g., `menu_option_12`)
 4. **Wire in main.ts**:
    - Import: `import { MyViewComponent } from './components/my-view';`
-   - Get button: `const menuButton12 = builder.get_object('menu_button_12') as Gtk.ToggleButton;`
-   - Connect: `menuButton12.connect('clicked', () => this.onNavigationItemSelected(12, ...));`
+   - Get button: `const menuButton12 = builder.get_object('menu_option_12') as Gtk.ToggleButton;`
+   - Connect: `menuButton12.connect('clicked', () => this.onNavigationItemSelected(12, mainContent, menuButton12, allMenuButtons, contentTitle));`
    - Add to `allMenuButtons` array
    - Add switch case: `case 12: this.showMyView(contentBox); break;`
    - Implement: `private showMyView(contentBox: Gtk.Box): void { /* ... */ }`
 5. **Update build script**: Add to `scripts/build.js` component concatenation section (before main.js)
-6. **Rebuild & test class="GtkListBoxRow">
-       <property name="child">
-         <object class="GtkBox">
-           <property name="spacing">12</property>
-           <child>
-             <object class="GtkImage">
-               <property name="icon-name">my-icon-symbolic</property>
-             </object>
-           </child>
-           <child>
-             <object class="GtkLabel">
-               <property name="label" translatable="yes">My View</property>
-             </object>
-           </child>
-         </object>
-       </property>
-     </object>
-   </child>
-   ```
-2. **Create component**: `src/components/my-view.ts` with `constructor()`, `getWidget()`, `destroy()`
-3. **Create UI file**: `data/ui/my-view.ui` with root container having unique ID
-4. **Import in main**: Add `import { MyViewComponent } from './components/my-view';` to `src/main.ts`
-5. **Add switch case**: In `onNavigationItemSelected()`, add `case N: this.showMyView(contentBox); break;`
-6. **Create show method**: Implement `private showMyView(contentBox: Gtk.Box): void` in `src/main.ts`
-7. **Update build script**: Add component to `scripts/build.js` concatenation (before `main.js` section)
-8. **Rebuild**: `npm run build && ./builddir/main.js`
+6. **Rebuild & test**: `npm run build && ./builddir/main.js`
 
 ### Adding App Actions
 Register in `onStartup()` method (`src/main.ts` lines 31-52):

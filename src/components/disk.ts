@@ -4,6 +4,7 @@ import GLib from "@girs/glib-2.0";
 import { UtilsService } from "../services/utils-service";
 import { ProcessesService } from '../services/processes-service';
 import { TopProcessesList, ProcessInfo } from './atoms/top-processes-list';
+import { InfoRow } from './atoms/info-row';
 
 interface DiskStats {
     device: string;
@@ -256,48 +257,20 @@ export class DiskComponent {
         });
 
         // Device type
-        const typeRow = new Adw.ActionRow({
-            title: 'Filesystem Type',
-        });
-        const typeLabel = new Gtk.Label({
-            label: fsType,
-            css_classes: ['dim-label'],
-        });
-        typeRow.add_suffix(typeLabel);
-        expanderRow.add_row(typeRow);
+        const typeRow = new InfoRow('Filesystem Type', fsType, 'Type of filesystem used').getWidget();
+        expanderRow.add_row(typeRow as any);
 
         // Total size
-        const sizeRow = new Adw.ActionRow({
-            title: 'Total Size',
-        });
-        const sizeLabel = new Gtk.Label({
-            label: size,
-            css_classes: ['dim-label'],
-        });
-        sizeRow.add_suffix(sizeLabel);
-        expanderRow.add_row(sizeRow);
+        const sizeRow = new InfoRow('Total Size', size, 'Total capacity of the filesystem').getWidget();
+        expanderRow.add_row(sizeRow as any);
 
         // Used space
-        const usedRow = new Adw.ActionRow({
-            title: 'Used Space',
-        });
-        const usedLabel = new Gtk.Label({
-            label: `${used} (${usePercent})`,
-            css_classes: ['dim-label'],
-        });
-        usedRow.add_suffix(usedLabel);
-        expanderRow.add_row(usedRow);
+        const usedRow = new InfoRow('Used Space', `${used} (${usePercent})`, 'Amount of space currently in use').getWidget();
+        expanderRow.add_row(usedRow as any);
 
         // Available space
-        const availRow = new Adw.ActionRow({
-            title: 'Available Space',
-        });
-        const availLabel = new Gtk.Label({
-            label: available,
-            css_classes: ['dim-label'],
-        });
-        availRow.add_suffix(availLabel);
-        expanderRow.add_row(availRow);
+        const availRow = new InfoRow('Available Space', available, 'Free space available for use').getWidget();
+        expanderRow.add_row(availRow as any);
 
         this.filesystemsGroup.add(expanderRow);
         this.filesystemRows.set(device, expanderRow);
@@ -437,51 +410,23 @@ export class DiskComponent {
         });
 
         // Drive Type (HDD/SSD)
-        const typeRow = new Adw.ActionRow({
-            title: 'Type',
-        });
-        const typeLabel = new Gtk.Label({
-            label: driveType,
-            css_classes: ['dim-label'],
-        });
-        typeRow.add_suffix(typeLabel);
-        expanderRow.add_row(typeRow);
+        const typeRow = new InfoRow('Type', driveType, 'Storage technology').getWidget();
+        expanderRow.add_row(typeRow as any);
 
         // Size
-        const sizeRow = new Adw.ActionRow({
-            title: 'Size',
-        });
-        const sizeLabel = new Gtk.Label({
-            label: size,
-            css_classes: ['dim-label'],
-        });
-        sizeRow.add_suffix(sizeLabel);
-        expanderRow.add_row(sizeRow);
+        const sizeRow = new InfoRow('Size', size, 'Total drive capacity').getWidget();
+        expanderRow.add_row(sizeRow as any);
 
         // Get additional information
         try {
             // Read/Write statistics
             const stats = this.previousStats.get(device);
             if (stats) {
-                const totalReadRow = new Adw.ActionRow({
-                    title: 'Total Read Operations',
-                });
-                const totalReadLabel = new Gtk.Label({
-                    label: stats.readOps.toString(),
-                    css_classes: ['dim-label'],
-                });
-                totalReadRow.add_suffix(totalReadLabel);
-                expanderRow.add_row(totalReadRow);
+                const totalReadRow = new InfoRow('Total Read Operations', stats.readOps.toString(), 'Number of read operations since boot').getWidget();
+                expanderRow.add_row(totalReadRow as any);
 
-                const totalWriteRow = new Adw.ActionRow({
-                    title: 'Total Write Operations',
-                });
-                const totalWriteLabel = new Gtk.Label({
-                    label: stats.writeOps.toString(),
-                    css_classes: ['dim-label'],
-                });
-                totalWriteRow.add_suffix(totalWriteLabel);
-                expanderRow.add_row(totalWriteRow);
+                const totalWriteRow = new InfoRow('Total Write Operations', stats.writeOps.toString(), 'Number of write operations since boot').getWidget();
+                expanderRow.add_row(totalWriteRow as any);
             }
 
             // Try to get SMART status
@@ -489,15 +434,8 @@ export class DiskComponent {
                 const [smartOut] = this.utils.executeCommand('smartctl', ['-H', `/dev/${device}`]);
                 const healthMatch = smartOut.match(/SMART overall-health self-assessment test result: (\w+)/);
                 if (healthMatch) {
-                    const healthRow = new Adw.ActionRow({
-                        title: 'SMART Health',
-                    });
-                    const healthLabel = new Gtk.Label({
-                        label: healthMatch[1],
-                        css_classes: ['dim-label'],
-                    });
-                    healthRow.add_suffix(healthLabel);
-                    expanderRow.add_row(healthRow);
+                    const healthRow = new InfoRow('SMART Health', healthMatch[1], 'Self-monitoring analysis and reporting technology').getWidget();
+                    expanderRow.add_row(healthRow as any);
                 }
             } catch {
                 // SMART not available or requires sudo
@@ -508,15 +446,8 @@ export class DiskComponent {
                 const [tempOut] = this.utils.executeCommand('cat', [`/sys/block/${device}/device/hwmon/hwmon*/temp1_input`]);
                 const temp = parseInt(tempOut.trim()) / 1000;
                 if (!isNaN(temp)) {
-                    const tempRow = new Adw.ActionRow({
-                        title: 'Temperature',
-                    });
-                    const tempLabel = new Gtk.Label({
-                        label: `${temp.toFixed(1)}°C`,
-                        css_classes: ['dim-label'],
-                    });
-                    tempRow.add_suffix(tempLabel);
-                    expanderRow.add_row(tempRow);
+                    const tempRow = new InfoRow('Temperature', `${temp.toFixed(1)}°C`, 'Current drive temperature').getWidget();
+                    expanderRow.add_row(tempRow as any);
                 }
             } catch {
                 // Temperature not available
