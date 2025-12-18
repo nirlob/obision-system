@@ -1,6 +1,6 @@
 {
   "name": "obision-app-system",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "System monitoring, status and info application",
   "main": "builddir/main.js",
   "scripts": {
