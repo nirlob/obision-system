@@ -128,9 +128,37 @@ jobs:
           dpkg-scanpackages --multiversion debs > Packages
           gzip -k -f Packages
           
+          # Generate Release file
+          cat > Release << EOF
+          Origin: Obision
+          Label: Obision Packages
+          Suite: stable
+          Codename: stable
+          Architectures: all amd64 arm64
+          Components: main
+          Description: Obision APT Repository
+          Date: $(date -Ru)
+          EOF
+          
+          # Add checksums to Release file
+          echo "MD5Sum:" >> Release
+          for file in Packages Packages.gz; do
+            echo " $(md5sum $file | cut -d' ' -f1) $(wc -c < $file) $file" >> Release
+          done
+          
+          echo "SHA1:" >> Release
+          for file in Packages Packages.gz; do
+            echo " $(sha1sum $file | cut -d' ' -f1) $(wc -c < $file) $file" >> Release
+          done
+          
+          echo "SHA256:" >> Release
+          for file in Packages Packages.gz; do
+            echo " $(sha256sum $file | cut -d' ' -f1) $(wc -c < $file) $file" >> Release
+          done
+          
           # Commit and push (including deletions)
           git add -A debs/
-          git add Packages Packages.gz
+          git add Packages Packages.gz Release
           git commit -m "Update obision-app-system to version $VERSION"
           git push origin master
           
