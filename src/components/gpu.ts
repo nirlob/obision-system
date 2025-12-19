@@ -34,7 +34,7 @@ export class GpuComponent {
     
     try {
       try {
-        builder.add_from_file('/usr/share/com.obision.ObisionAppSystem/ui/gpu.ui');
+        builder.add_from_file('/usr/share/com.obision.app.system/ui/gpu.ui');
       } catch (e) {
         builder.add_from_file('data/ui/gpu.ui');
       }

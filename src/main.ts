@@ -23,7 +23,7 @@ class ObisionStatusApplication {
   constructor() {
     // Create the application
     this.application = new Adw.Application({
-      application_id: 'com.obision.ObisionAppSystem',
+      application_id: 'com.obision.app.system',
       flags: Gio.ApplicationFlags.DEFAULT_FLAGS,
     });
 
@@ -72,7 +72,7 @@ class ObisionStatusApplication {
 
     // Load CSS
     const cssProvider = new Gtk.CssProvider();
-    const installedPath = '/usr/share/com.obision.ObisionAppSystem/style.css';
+    const installedPath = '/usr/share/com.obision.app.system/style.css';
     const devPath = 'data/style.css';
     
     // Check if installed version exists
@@ -102,7 +102,7 @@ class ObisionStatusApplication {
     try {
       // Try installed path first
       try {
-        builder.add_from_file('/usr/share/com.obision.ObisionAppSystem/ui/main.ui');
+        builder.add_from_file('/usr/share/com.obision.app.system/ui/main.ui');
       } catch (e) {
         builder.add_from_file('data/ui/main.ui');
       }
@@ -376,7 +376,7 @@ class ObisionStatusApplication {
       transient_for: parent,
       modal: true,
       application_name: 'Obision System',
-      application_icon: 'com.obision.ObisionAppSystem',
+      application_icon: 'com.obision.app.system',
       developer_name: 'Jose Francisco Gonzalez',
       version: '0.0.0',
       developers: ['Jose Francisco Gonzalez <jfgs1609@gmail.com>'],
@@ -394,7 +394,7 @@ class ObisionStatusApplication {
     
     try {
       try {
-        builder.add_from_file('/usr/share/com.obision.ObisionAppSystem/ui/preferences.ui');
+        builder.add_from_file('/usr/share/com.obision.app.system/ui/preferences.ui');
       } catch (e) {
         builder.add_from_file('data/ui/preferences.ui');
       }

@@ -37,7 +37,7 @@ export class BatteryComponent {
     
     try {
       try {
-        builder.add_from_file('/usr/share/com.obision.ObisionAppSystem/ui/battery.ui');
+        builder.add_from_file('/usr/share/com.obision.app.system/ui/battery.ui');
       } catch (e) {
         builder.add_from_file('data/ui/battery.ui');
       }

@@ -5,7 +5,7 @@ A modern GNOME system monitoring application built with TypeScript, GTK4, and Li
 
 **Current Version**: 1.6.0  
 **Runtime**: GJS (GNOME JavaScript), NOT Node.js  
-**Application ID**: `com.obision.ObisionAppSystem` (note: code still references `ObisionStatusApplication` class name)
+**Application ID**: `com.obision.app.system`
 
 ## Critical Build System
 **NEVER use `tsc` directly.** Always use `npm run build` which:
@@ -62,7 +62,7 @@ class ObisionStatusApplication {
   
   constructor() {
     this.application = new Adw.Application({
-      application_id: 'com.obision.ObisionAppSystem',  // Note: ObisionAppSystem, not ObisionStatus
+      application_id: 'com.obision.app.system',
       flags: Gio.ApplicationFlags.DEFAULT_FLAGS,
     });
     this.application.connect('activate', this.onActivate.bind(this));
@@ -269,7 +269,7 @@ src/
 data/
 ├── ui/*.ui                         # GTK Builder XML files (one per component)
 ├── style.css                       # GTK4/Adwaita CSS customizations
-├── com.obision.ObisionAppSystem.gschema.xml  # GSettings schema
+├── com.obision.app.system.gschema.xml  # GSettings schema
 └── icons/                          # Icon assets
 
 scripts/build.js                    # Custom TypeScript → GJS compiler
@@ -319,7 +319,7 @@ Load styles early in `onActivate()` (`src/main.ts` lines 70-81):
 ```typescript
 const cssProvider = new Gtk.CssProvider();
 try {
-  cssProvider.load_from_path('/usr/share/com.obision.ObisionAppSystem/style.css');
+  cssProvider.load_from_path('/usr/share/com.obision.app.system/style.css');
 } catch (e) {
   cssProvider.load_from_path('data/style.css'); // Development fallback
 }
@@ -363,7 +363,7 @@ this.cpuChart.queue_draw(); // Trigger redraw
      constructor() {
        const builder = Gtk.Builder.new();
        try {
-         builder.add_from_file('/usr/share/com.obision.ObisionAppSystem/ui/my-view.ui');
+         builder.add_from_file('/usr/share/com.obision.app.system/ui/my-view.ui');
        } catch (e) {
          builder.add_from_file('data/ui/my-view.ui');
        }
@@ -454,7 +454,7 @@ window.connect('close-request', () => {
   return false; // Allow window to close
 });
 ```
-Settings keys defined in `data/com.obision.ObisionAppSystem.gschema.xml`.
+Settings keys defined in `data/com.obision.app.system.gschema.xml`.
 
 ### Periodic Updates
 Use `GLib.timeout_add` for polling (`src/components/resume.ts` lines 62-66):

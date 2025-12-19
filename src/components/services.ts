@@ -22,7 +22,7 @@ export class ServicesComponent {
     // Load UI file with fallback
     try {
       try {
-        builder.add_from_file('/usr/share/com.obision.ObisionAppSystem/ui/services.ui');
+        builder.add_from_file('/usr/share/com.obision.app.system/ui/services.ui');
       } catch (e) {
         builder.add_from_file('data/ui/services.ui');
       }

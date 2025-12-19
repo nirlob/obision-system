@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+- **Application ID Standardization**: Updated to follow GNOME naming conventions
+  - Application ID: `com.obision.ObisionAppSystem` → `com.obision.app.system`
+  - GSettings schema: `com.obision.obision-app-system` → `com.obision.app.system`
+  - Desktop file: `com.obision.ObisionAppSystem.desktop` → `com.obision.app.system.desktop`
+  - Icon files: Renamed to `com.obision.app.system.*`
+  - Updated all paths in source code to use new naming scheme
+
 ## [1.0.1] - 2025-12-07
 
 ### Fixed

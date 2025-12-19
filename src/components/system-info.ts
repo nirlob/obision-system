@@ -30,7 +30,7 @@ export class SystemInfoComponent {
     // Load UI file with fallback
     try {
       try {
-        builder.add_from_file('/usr/share/com.obision.ObisionAppSystem/ui/system-info.ui');
+        builder.add_from_file('/usr/share/com.obision.app.system/ui/system-info.ui');
       } catch (e) {
         builder.add_from_file('data/ui/system-info.ui');
       }

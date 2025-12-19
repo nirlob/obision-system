@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>  
 <gresources>
-  <gresource prefix="/com/obision/ObisionAppSystem">
+  <gresource prefix="/com/obision/app/system">
     <file>data/ui/main.ui</file>
     <file>data/ui/resume.ui</file>
     <file>data/ui/cpu.ui</file>

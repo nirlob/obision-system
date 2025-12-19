@@ -6,7 +6,7 @@ project('obision-app-system',
 gnome = import('gnome')
 
 # Application ID
-app_id = 'com.obision.ObisionAppSystem'
+app_id = 'com.obision.app.system'
 
 # Configuration
 conf = configuration_data()
