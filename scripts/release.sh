@@ -144,7 +144,7 @@ echo "✅ Packages and Release files updated"
 
 # Commit and push to obision-packages
 echo "💾 Committing to obision-packages..."
-git add "debs/$DEB_FILENAME" Packages Packages.gz Release
+git add -A
 git commit -m "Add obision-app-system version $NEW_VERSION"
 git push origin master
 
